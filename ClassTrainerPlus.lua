@@ -951,18 +951,3 @@ SlashCmdList["CTP"] = function (msg)
 		print("ClassTrainerPlus database cleared");
 	end
 end
-
-
-StaticPopupDialogs["EXAMPLE_HELLOWORLD"] = {
-    text = "Do you want to greet the world today?",
-    hasEditBox = true,
-    button1 = "Yes",
-    button2 = "No",
-    OnAccept = function()
-        GreetTheWorld()
-    end,
-    timeout = 0,
-    whileDead = true,
-    hideOnEscape = true,
-    preferredIndex = 3,  -- avoid some UI taint, see http://www.wowace.com/announcements/how-to-avoid-some-ui-taint/
-}
