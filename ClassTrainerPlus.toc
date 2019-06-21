@@ -1,7 +1,6 @@
 ## Interface: 11302
 ## Title: Class Trainer Plus
-## Version: 0.1-alpha
-## LoadOnDemand: 0
+## Version: 0.1-beta
 ## Author: Sveng
 ## Notes: Lets you hide abilities from class trainers that you don't care about
 ## SavedVariables: TRAINER_FILTER_AVAILABLE, TRAINER_FILTER_UNAVAILABLE, TRAINER_FILTER_USED
