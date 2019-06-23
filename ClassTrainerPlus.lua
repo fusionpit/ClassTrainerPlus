@@ -181,7 +181,7 @@ local trainerServices = {
 				if (realSpellNameMap[serviceName] == nil) then
 					realSpellNameMap[serviceName] = {};
 				end
-				if (serviceSubText and realSpellNameMap[serviceName][serviceSubText] == nil) then
+				if (serviceSubText and realSpellNameMap[serviceName][serviceSubText] == nil and not IsTradeskillTrainer()) then
 					GameTooltip:SetTrainerService(i);
 					local tooltipName = GameTooltipTextLeft1:GetText();
 					if (tooltipName and string.find(tooltipName, serviceName, 1, true)) then
