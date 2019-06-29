@@ -17,5 +17,6 @@ Classes\Warlock.lua
 Classes\Warrior.lua
 
 Localization.lua
+AbilityStorage.lua
 ClassTrainerPlus.xml
 Loader.lua

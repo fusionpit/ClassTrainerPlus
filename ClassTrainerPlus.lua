@@ -16,111 +16,13 @@ TRAINER_FILTER_IGNORED = 1;
 
 ClassTrainerPlusDBPC = {};
 
-local spellsToStripSubtextFrom = {
-	[3127] = true, -- Parry, which is flagged Passive by GetSpellSubtext but not by GetTrainerServiceInfo
-	[674] = true, -- Dual Wield, same as Parry
-	[2836] = true, -- Detect Traps, passive
-	[20608] = true -- Reincarnation, passive
-};
-local spellsToAllowRanklessMatch = {
-	[921] = true, -- Pick Pocket, has Rank 1 in trainer ui, no rank from spell info
-	[29166] = true, -- Innervate, has Rank 1 in trainer ui, no rank from spell info
-};
-
-local realSpellNameMap = {};
-local abilities = {
-	_store = {},
-	_spellIds = {},
-	_partialMatchSpells = {},
-	GetByNameAndSubText = function(self, serviceName, serviceSubText)
-		local key = self.getKey(serviceName, serviceSubText);
-		if (self._store[key] == nil) then
-			key = self.getAlternateKey(serviceName);
-			if (self._store[key] ~= nil) then
-				return self._store[key];
-			end
-		end
-		if (realSpellNameMap[serviceName] and realSpellNameMap[serviceName][serviceSubText]) then
-			key = self.getKey(realSpellNameMap[serviceName][serviceSubText], serviceSubText);
-		end
-		return self._store[key];
-	end,
-	IsIgnored = function(self, serviceName, serviceSubText)
-		local ability = self:GetByNameAndSubText(serviceName, serviceSubText);
-		return ability ~= nil and ability.isIgnored;
-	end,
-	getKey = function(serviceName, serviceSubText)
-		local abilityKey = serviceName;
-		if (serviceSubText ~= nil and serviceSubText ~= '') then
-			abilityKey = abilityKey.." "..serviceSubText;
-		end
-		return abilityKey;
-	end,
-	getAlternateKey = function(serviceName) 
-		return serviceName.." *";
-	end,
-	IsSpellIdStored = function(self, spellId)
-		return self._spellIds[spellId] ~= nil;
-	end,
-	-- TODO: Refactor load and update
-	Load = function(self, table)
-		self._store = {};
-		self._spellIds = {};
-		for _, spellId in pairs(table) do
-			local spell = Spell:CreateFromSpellID(spellId);
-			spell:ContinueOnSpellLoad(function() 
-				local spellName = spell:GetSpellName();
-				local subText = spell:GetSpellSubtext();
-				if (spellsToStripSubtextFrom[spellId]) then
-					subText = "";
-				end
-				if (spellsToAllowRanklessMatch[spellId]) then
-					subText = "*";
-				end
-				local key = self.getKey(spellName, subText);
-				if (self._store[key] == nil) then
-					self._store[key] = {
-						spellId = spellId,
-						isIgnored = false
-					};
-				end
-				self._spellIds[spellId] = key;
-				if (ClassTrainerFrame and ClassTrainerFrame:IsVisible()) then
-					CTP_UpdateService();
-					ClassTrainerFrame_Update();
-				end
-			end);
-		end
-	end,
-	Update = function(self, table)
-		for spellId, isIgnored in pairs(table) do
-			local spell = Spell:CreateFromSpellID(spellId);
-			spell:ContinueOnSpellLoad(function() 
-				local spellName = spell:GetSpellName();
-				local subText = spell:GetSpellSubtext();
-				if (spellsToStripSubtextFrom[spellId]) then
-					subText = "";
-				end
-				if (spellsToAllowRanklessMatch[spellId]) then
-					subText = "*";
-				end
-				local key = self.getKey(spellName, subText);
-				self._store[key] = {
-					spellId = spellId,
-					isIgnored = isIgnored
-				};
-			end);
-		end
-	end
-};
-
 local _, englishClass = UnitClass("player");
 englishClass = string.gsub(string.lower(englishClass),"^%l", string.upper);
 local classSpellIds = _G[format("ClassTrainerPlus%sSpellIds", englishClass)];
-abilities:Load(classSpellIds);
+ctp.Abilities:Load(classSpellIds);
 
 local function UpdateUserFilters()
-	abilities:Update(ClassTrainerPlusDBPC);
+	ctp.Abilities:Update(ClassTrainerPlusDBPC);
 	CTP_UpdateService();
 	if (ClassTrainerFrame and ClassTrainerFrame:IsVisible()) then
 		ClassTrainerFrame_Update();
@@ -722,7 +624,7 @@ function ClassTrainerSkillButton_OnClick(self, button)
 				checked = checked,
 				func = function() 
 					PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
-					local ability = abilities:GetByNameAndSubText(service.name, service.subText);
+					local ability = ctp.Abilities:GetByNameAndSubText(service.name, service.subText);
 					local spellId = ability.spellId;
 					if (spellId ~= nil and spellId > 0) then
 						if (ClassTrainerPlusDBPC[spellId] == nil) then
@@ -928,7 +830,7 @@ SlashCmdList["CTP"] = function (msg)
 				return;
 			end
 			local spellId = tonumber(part, 36);
-			if (not abilities:IsSpellIdStored(spellId)) then
+			if (not ctp.Abilities:IsSpellIdStored(spellId)) then
 				print(format("ClassTrainerPlus is aborting the import because spellId %d does not belong to this class", spellId));
 				return;
 			end
@@ -946,7 +848,7 @@ SlashCmdList["CTP"] = function (msg)
 		print(format("ClassTrainerPlus imported %d new ignored abilities (%d were already ignored)", newImports, #import-newImports));
 	elseif (cmd == "clear") then
 		ClassTrainerPlusDBPC = {};
-		abilities:Load(classSpellIds);
+		ctp.Abilities:Load(classSpellIds);
 		TrainerUpdateHandler();
 		print("ClassTrainerPlus database cleared");
 	end
