@@ -1,3 +1,4 @@
+local _, ctp = ...;
 --- KNOWN ISSUES:
 -- - When scrolled down and toggling Ignored off, the display can get cut off not displaying all spells
 -- - When ignoring things at the very bottom, it will shift around weird
@@ -53,124 +54,6 @@ StaticPopupDialogs["CONFIRM_PROFESSION"] = {
 	hideOnEscape = 1
 };
 
-local trainerServices = {
-	totalServices = 0,
-	visibleServices = 0,
-	showIgnored = TRAINER_FILTER_IGNORED,
-	allHeadersCollapsed = false,
-	Update = function(self)
-		self._byPosition = {};
-		self._byServiceId = {};
-		self.showIgnored = TRAINER_FILTER_IGNORED == 1;
-		self.totalServices = GetNumTrainerServices();
-		local currentSection = nil;
-		local candidateSections = {};
-		for i = 1, self.totalServices, 1 do
-			local serviceName, serviceSubText, serviceType, isExpanded = GetTrainerServiceInfo(i);
-			if (serviceType == "header") then
-				currentSection = {
-					name = serviceName,
-					type = serviceType,
-					subText = serviceSubText,
-					isExpanded = isExpanded,
-					serviceId = i,
-					skills = {},
-					isHidden = false
-				};
-				self._byServiceId[i] = currentSection;
-				tinsert(candidateSections, currentSection);
-			else 
-				if (realSpellNameMap[serviceName] == nil) then
-					realSpellNameMap[serviceName] = {};
-				end
-				if (serviceSubText and realSpellNameMap[serviceName][serviceSubText] == nil and not IsTradeskillTrainer()) then
-					GameTooltip:SetTrainerService(i);
-					local tooltipName = GameTooltipTextLeft1:GetText();
-					if (tooltipName and string.find(tooltipName, serviceName, 1, true)) then
-						realSpellNameMap[serviceName][serviceSubText] = tooltipName;
-					end
-				end
-				local isIgnored = abilities:IsIgnored(serviceName, serviceSubText);
-				local ability =  {
-					serviceId = i,
-					name = serviceName,
-					subText = serviceSubText,
-					isIgnored = isIgnored,
-					type = serviceType,
-					isHidden = false
-				};
-				if (serviceSubText ~= nil and serviceSubText ~= "") then
-					ability.menuTitle = serviceName.." "..format(PARENS_TEMPLATE, serviceSubText);
-				else
-					ability.menuTitle = serviceName;
-				end
-				self._byServiceId[i] = ability;
-				if (not isIgnored or self.showIgnored) then
-					tinsert(currentSection.skills, ability);
-				end
-				if (isIgnored and serviceType ~= "used") then
-					if (not self.showIgnored) then
-						ability.isHidden = true;
-					end
-				end
-			end
-		end
-		self.visibleServices = 0;
-		local numHeaders = #candidateSections;
-		local numNotExpanded = 0;
-		for _, candidate in ipairs(candidateSections) do
-			local skillsInCandidate = #candidate.skills
-			if (self.showIgnored or skillsInCandidate > 0 or not candidate.isExpanded) then
-				self.visibleServices = self.visibleServices + 1;
-				self._byPosition[self.visibleServices] = candidate;
-				for j = 1, #candidate.skills, 1 do
-					self.visibleServices = self.visibleServices + 1;
-					self._byPosition[self.visibleServices] = candidate.skills[j];
-				end
-			else
-				candidate.isHidden = true;
-			end
-			if (not candidate.isExpanded and not candidate.isHidden) then
-				numNotExpanded = numNotExpanded + 1;
-			end
-		end
-		self.allHeadersCollapsed = numHeaders == numNotExpanded;
-	end,
-	IsSelected = function(self, serviceId)
-		if (not serviceId or serviceId == 0) then return false; end;
-		local service = self._byServiceId[serviceId];
-		return (service and not service.isHidden) and GetTrainerSelectionIndex() == serviceId;
-	end,
-	GetFirstVisibleNonHeaderService = function(self)
-		for _, service in ipairs(self._byPosition) do
-			if (service.type ~= "header") then
-				return service;
-			end
-		end
-	end,
-	GetNextAvailableServiceId = function(self, serviceId)
-		for id, service in ipairs(self._byPosition) do
-			if (service.serviceId == serviceId and id < #self._byPosition) then
-				local nextService = self._byPosition[id+1];
-				if (nextService.type == "available") then
-					return nextService.serviceId;
-				else
-					serviceId = nextService.serviceId;
-				end
-			end
-		end
-	end,
-	GetServiceAtPosition = function(self, position)
-		return self._byPosition[position];
-	end,
-	GetService = function(self, id)
-		return self._byServiceId[id];
-	end
-};
-function CTP_UpdateService()
-	trainerServices:Update();
-end
-
 function ClassTrainerFrame_Show()
 	ShowUIPanel(ClassTrainerFrame);
 	if ( not ClassTrainerFrame:IsVisible() ) then
@@ -185,7 +68,7 @@ function ClassTrainerFrame_Show()
 
 	ClassTrainer_SelectFirstLearnableSkill();
 
-	trainerServices:Update();
+	ctp.TrainerServices:Update();
 	ClassTrainerFrame_Update();
 	UpdateMicroButtons();
 end
@@ -208,16 +91,16 @@ function ClassTrainerFrame_OnLoad(self)
 end
 
 local function TrainerUpdateHandler()
-	trainerServices:Update();
+	ctp.TrainerServices:Update();
 
 	local selectedIndex = GetTrainerSelectionIndex();
 	if ( selectedIndex > 1 ) then
 		-- Select the first available ability
-		local service = trainerServices:GetService(selectedIndex);
-        if ( selectedIndex > trainerServices.totalServices ) then
+		local service = ctp.TrainerServices:GetService(selectedIndex);
+        if ( selectedIndex > ctp.TrainerServices.totalServices ) then
             FauxScrollFrame_SetOffset(ClassTrainerListScrollFrame, 0);
 			ClassTrainerListScrollFrameScrollBar:SetValue(0);
-			local firstAbility = trainerServices:GetFirstVisibleNonHeaderService();
+			local firstAbility = ctp.TrainerServices:GetFirstVisibleNonHeaderService();
 			if (firstAbility == nil) then
 				selectedIndex = nil;
 			else
@@ -226,9 +109,9 @@ local function TrainerUpdateHandler()
 		elseif (service and service.isHidden) then
 			while (service and (service.isHidden or service.type == "header")) do
 				selectedIndex = selectedIndex + 1;
-				service = trainerServices:GetService(selectedIndex);
+				service = ctp.TrainerServices:GetService(selectedIndex);
 			end
-			if (selectedIndex > trainerServices.totalServices) then
+			if (selectedIndex > ctp.TrainerServices.totalServices) then
 				selectedIndex = nil;
 			end
 		end
@@ -265,8 +148,8 @@ function ClassTrainerFrame_Update()
 	SetPortraitTexture(ClassTrainerFramePortrait, "npc");
 	ClassTrainerNameText:SetText(UnitName("npc"));
 	ClassTrainerGreetingText:SetText(GetTrainerGreetingText());
-	local numTrainerServices = trainerServices.totalServices;
-	local numFilteredTrainerServices = trainerServices.visibleServices;
+	local numTrainerServices = ctp.TrainerServices.totalServices;
+	local numFilteredTrainerServices = ctp.TrainerServices.visibleServices;
     local skillOffset = FauxScrollFrame_GetOffset(ClassTrainerListScrollFrame);
 	local showIgnored = TRAINER_FILTER_IGNORED == 1
 
@@ -306,7 +189,7 @@ function ClassTrainerFrame_Update()
 		local moneyCost;
 
 		if ( skillIndex <= numFilteredTrainerServices ) then	
-			local service = trainerServices:GetServiceAtPosition(skillIndex);
+			local service = ctp.TrainerServices:GetServiceAtPosition(skillIndex);
 			serviceName = service.name;
 			serviceSubText = service.subText;
 			serviceType = service.type;
@@ -372,7 +255,7 @@ function ClassTrainerFrame_Update()
 			skillButton:SetID(service.serviceId);
 			skillButton:Show();
 			-- Place the highlight and lock the highlight state
-			if (trainerServices:IsSelected(service.serviceId)) then
+			if (ctp.TrainerServices:IsSelected(service.serviceId)) then
 				ClassTrainerSkillHighlightFrame:SetPoint("TOPLEFT", "ClassTrainerSkill"..i, "TOPLEFT", 0, 0);
 				ClassTrainerSkillHighlightFrame:Show();
 				skillButton:LockHighlight();
@@ -389,13 +272,13 @@ function ClassTrainerFrame_Update()
 	end
 
 	-- Show skill details if the skill is visible
-	if (trainerServices:IsSelected(ClassTrainerFrame.selectedService)) then
+	if (ctp.TrainerServices:IsSelected(ClassTrainerFrame.selectedService)) then
 		ClassTrainer_ShowSkillDetails();
 	else	
 		ClassTrainer_HideSkillDetails();
 	end
 	-- Set the expand/collapse all button texture
-	if (trainerServices.allHeadersCollapsed) then
+	if (ctp.TrainerServices.allHeadersCollapsed) then
 		ClassTrainerCollapseAllButton.collapsed = 1;
 		ClassTrainerCollapseAllButton:SetNormalTexture("Interface\\Buttons\\UI-PlusButton-Up");
 	else
@@ -405,9 +288,9 @@ function ClassTrainerFrame_Update()
 end
 
 function ClassTrainer_SelectFirstLearnableSkill()
-	if ( trainerServices.visibleServices > 0 ) then
+	if ( ctp.TrainerServices.visibleServices > 0 ) then
 		ClassTrainerFrame.showSkillDetails = 1;
-		local firstAbility = trainerServices:GetFirstVisibleNonHeaderService();
+		local firstAbility = ctp.TrainerServices:GetFirstVisibleNonHeaderService();
 		if (firstAbility ~= nil) then
 			ClassTrainer_SetSelection(firstAbility.serviceId)
 		else
@@ -435,7 +318,7 @@ function ClassTrainer_SetSelection(id)
 	
 	local showIgnored = TRAINER_FILTER_IGNORED == 1;
 	local serviceName, serviceSubText, serviceType, isExpanded;
-	local service = trainerServices:GetService(id);
+	local service = ctp.TrainerServices:GetService(id);
 	serviceName = service.name;
 	serviceSubText = service.subText;
 	serviceType = service.type;
@@ -601,13 +484,13 @@ function ClassTrainerSkillButton_OnClick(self, button)
 	end
 	
 	if ( button == "LeftButton" ) then
-		local service = trainerServices:GetService(self:GetID());
+		local service = ctp.TrainerServices:GetService(self:GetID());
 		ClassTrainerFrame.selectedService = service.serviceId;
 		ClassTrainerFrame.showSkillDetails = 1;
 		ClassTrainer_SetSelection(self:GetID());
 		ClassTrainerFrame_Update();
 	elseif (button == "RightButton" and not IsTradeskillTrainer()) then
-		local service = trainerServices:GetService(self:GetID());
+		local service = ctp.TrainerServices:GetService(self:GetID());
 		if (service.type == "header" or service.type == "used") then
 			return;
 		end
@@ -649,9 +532,9 @@ function ClassTrainerTrainButton_OnClick()
 	if (IsTradeskillTrainer() and ClassTrainerFrame.showDialog) then
 		StaticPopup_Show("CONFIRM_PROFESSION");
 	else
-		local service = trainerServices:GetService(ClassTrainerFrame.selectedService);
+		local service = ctp.TrainerServices:GetService(ClassTrainerFrame.selectedService);
 		BuyTrainerService(ClassTrainerFrame.selectedService);
-		local nextSelection = trainerServices:GetNextAvailableServiceId(ClassTrainerFrame.selectedService);
+		local nextSelection = ctp.TrainerServices:GetNextAvailableServiceId(ClassTrainerFrame.selectedService);
 
 		if (nextSelection ~= nil and nextSelection <= trainerServices.totalServices) then
 			ClassTrainerFrame.showSkillDetails = 1;

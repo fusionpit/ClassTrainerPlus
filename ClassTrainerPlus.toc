@@ -18,5 +18,6 @@ Classes\Warrior.lua
 
 Localization.lua
 AbilityStorage.lua
+TrainerServices.lua
 ClassTrainerPlus.xml
 Loader.lua
