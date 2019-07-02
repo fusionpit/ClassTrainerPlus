@@ -3,8 +3,6 @@ local _, ctp = ...;
 -- - When scrolled down and toggling Ignored off, the display can get cut off not displaying all spells
 -- - When ignoring things at the very bottom, it will shift around weird
 
-local L = ClassTrainerPlusText;
-
 CLASS_TRAINER_SKILLS_DISPLAYED = 11;
 CLASS_TRAINER_SKILL_HEIGHT = 16;
 MAX_LEARNABLE_PROFESSIONS = 2;
@@ -503,7 +501,7 @@ function ClassTrainerSkillButton_OnClick(self, button)
 		local menu = {
 			{text = menuTitle, isTitle = true,classicChecks=true},
 			{
-				text = L["IGNORED"], 
+				text = ctp.L["IGNORED"], 
 				checked = checked,
 				func = function() 
 					PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
@@ -629,7 +627,7 @@ function ClassTrainerFrameFilterDropDown_Initialize()
 		if (TRAINER_FILTER_IGNORED == 1) then
 			checked = 1;
 		end
-		info.text = LIGHTYELLOW_FONT_COLOR_CODE..L["IGNORED"]..FONT_COLOR_CODE_CLOSE;
+		info.text = LIGHTYELLOW_FONT_COLOR_CODE..ctp.L["IGNORED"]..FONT_COLOR_CODE_CLOSE;
 		info.value = "ignored";
 		info.func = ClassTrainerFrameFilterDropDown_OnClick;
 		info.checked = checked;
