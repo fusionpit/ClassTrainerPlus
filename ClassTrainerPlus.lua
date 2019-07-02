@@ -3,6 +3,52 @@ local _, ctp = ...
 -- - When scrolled down and toggling Ignored off, the display can get cut off not displaying all spells
 -- - When ignoring things at the very bottom, it will shift around weird
 
+local CreateFrame = CreateFrame
+local GetMoney = GetMoney
+local PlaySound = PlaySound
+local UnitClass = UnitClass
+local UnitName = UnitName
+local UnitLevel = UnitLevel
+local BuyTrainerService = BuyTrainerService
+local SelectTrainerService = SelectTrainerService
+local GetTrainerServiceSkillLine= GetTrainerServiceSkillLine
+local GetTrainerSelectionIndex = GetTrainerSelectionIndex
+local GetTrainerGreetingText = GetTrainerGreetingText
+local GetTrainerServiceCost = GetTrainerServiceCost
+local GetTrainerServiceIcon = GetTrainerServiceIcon
+local GetTrainerServiceLevelReq = GetTrainerServiceLevelReq
+local GetTrainerServiceTypeFilter = GetTrainerServiceTypeFilter
+local GetTrainerServiceSkillReq = GetTrainerServiceSkillReq
+local GetTrainerServiceNumAbilityReq = GetTrainerServiceNumAbilityReq
+local GetTrainerServiceAbilityReq = GetTrainerServiceAbilityReq
+local SetTrainerServiceTypeFilter = SetTrainerServiceTypeFilter
+local GetTrainerServiceInfo = GetTrainerServiceInfo
+local GetTrainerServiceDescription = GetTrainerServiceDescription
+local SetPortraitTexture = SetPortraitTexture
+local SetMoneyFrameColor = SetMoneyFrameColor
+local CloseTrainer = CloseTrainer
+local CloseDropDownMenus = CloseDropDownMenus
+local IsTradeskillTrainer = IsTradeskillTrainer
+local IsTrainerServiceLearnSpell = IsTrainerServiceLearnSpell
+local CollapseTrainerSkillLine =CollapseTrainerSkillLine
+local ExpandTrainerSkillLine = ExpandTrainerSkillLine
+local ShowUIPanel = ShowUIPanel
+local HideUIPanel =HideUIPanel
+local EasyMenu = EasyMenu
+local UpdateMicroButtons=UpdateMicroButtons
+local GetNumPrimaryProfessions= GetNumPrimaryProfessions
+local FauxScrollFrame_SetOffset = FauxScrollFrame_SetOffset
+local FauxScrollFrame_GetOffset = FauxScrollFrame_GetOffset
+local FauxScrollFrame_Update = FauxScrollFrame_Update
+local MoneyFrame_Update = MoneyFrame_Update
+local StaticPopup_Show = StaticPopup_Show
+local StaticPopup_Visible = StaticPopup_Visible
+local StaticPopup_Hide = StaticPopup_Hide
+local format = format
+local strupper = strupper
+local strlen = strlen
+local tinsert = tinsert
+
 CLASS_TRAINER_SKILLS_DISPLAYED = 11
 CLASS_TRAINER_SKILL_HEIGHT = 16
 MAX_LEARNABLE_PROFESSIONS = 2
@@ -150,10 +196,8 @@ function ClassTrainerFrame_Update()
 	SetPortraitTexture(ClassTrainerFramePortrait, "npc")
 	ClassTrainerNameText:SetText(UnitName("npc"))
 	ClassTrainerGreetingText:SetText(GetTrainerGreetingText())
-	local numTrainerServices = ctp.TrainerServices.totalServices
 	local numFilteredTrainerServices = ctp.TrainerServices.visibleServices
 	local skillOffset = FauxScrollFrame_GetOffset(ClassTrainerListScrollFrame)
-	local showIgnored = TRAINER_FILTER_IGNORED == 1
 
 	-- If no spells then clear everything out
 	if (numFilteredTrainerServices == 0) then
@@ -413,11 +457,11 @@ function ClassTrainer_SetSelection(id)
 	end
 	-- Ability Requirements
 	local numRequirements = GetTrainerServiceNumAbilityReq(id)
-	local ability, abilityName, abilitySubText, abilityType
+	local ability, abilityType
 	if (numRequirements > 0) then
 		for i = 1, numRequirements, 1 do
 			ability, hasReq = GetTrainerServiceAbilityReq(id, i)
-			abilityName, abilitySubText, abilityType = GetTrainerServiceInfo(id)
+			_, _, abilityType = GetTrainerServiceInfo(id)
 			if (ability) then
 				if (hasReq or (abilityType == "used")) then
 					requirements = requirements .. separator .. format(TRAINER_REQ_ABILITY, ability)
@@ -435,8 +479,7 @@ function ClassTrainer_SetSelection(id)
 	end
 	-- Money Frame and cost
 	local moneyCost, isProfession = GetTrainerServiceCost(id)
-	local cp1, cp2 = UnitCharacterPoints("player")
-	local unavailable, skillPointCost
+	local unavailable
 	if (moneyCost == 0) then
 		ClassTrainerDetailMoneyFrame:Hide()
 		ClassTrainerCostLabel:Hide()
@@ -545,11 +588,10 @@ function ClassTrainerTrainButton_OnClick()
 	if (IsTradeskillTrainer() and ClassTrainerFrame.showDialog) then
 		StaticPopup_Show("CONFIRM_PROFESSION")
 	else
-		local service = ctp.TrainerServices:GetService(ClassTrainerFrame.selectedService)
 		BuyTrainerService(ClassTrainerFrame.selectedService)
 		local nextSelection = ctp.TrainerServices:GetNextAvailableServiceId(ClassTrainerFrame.selectedService)
 
-		if (nextSelection ~= nil and nextSelection <= trainerServices.totalServices) then
+		if (nextSelection ~= nil and nextSelection <= ctp.TrainerServices.totalServices) then
 			ClassTrainerFrame.showSkillDetails = 1
 			ClassTrainer_SetSelection(nextSelection)
 		else
@@ -602,7 +644,6 @@ function ClassTrainer_SetToTradeSkillTrainer()
 	ClassTrainerSkill11:Hide()
 	ClassTrainerListScrollFrame:SetHeight(168)
 	ClassTrainerDetailScrollFrame:SetHeight(135)
-	local cp1, cp2 = UnitCharacterPoints("player")
 	ClassTrainerHorizontalBarLeft:SetPoint("TOPLEFT", "ClassTrainerFrame", "TOPLEFT", 15, -259)
 end
 
