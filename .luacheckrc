@@ -10,6 +10,7 @@ read_globals = {
     "UnitCharacterPoints",
     "BuyTrainerService",
     "SelectTrainerService",
+    "GetNumTrainerServices",
     "GetTrainerServiceSkillLine",
     "GetTrainerSelectionIndex",
     "GetTrainerGreetingText",
@@ -50,7 +51,7 @@ read_globals = {
     "UIDropDownMenuButton_GetChecked",
     "SearchBoxTemplate_OnTextChanged",
     -- api classes
-
+    "Spell",
     -- blizzard frames
     "UIParent",
     -- function aliases
@@ -58,6 +59,8 @@ read_globals = {
     "strupper",
     "strlen",
     "tinsert",
+    "strlower",
+    "strfind",
     -- constants
     "PROFESSION_CONFIRMATION1",
     "PROFESSION_CONFIRMATION2",
