@@ -25,7 +25,7 @@ ctp.TrainerServices = {
 				};
 				self._byServiceId[i] = currentSection;
 				tinsert(candidateSections, currentSection);
-			else 
+			else
 				if (ctp.RealSpellNameMap[serviceName] == nil) then
 					ctp.RealSpellNameMap[serviceName] = {};
 				end
