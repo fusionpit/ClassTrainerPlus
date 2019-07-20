@@ -800,6 +800,9 @@ function ClassTrainerPlusFrameFilterDropDown_OnClick(self)
 		newFilterValue = 1
 	end
 
+	ClassTrainerPlusListScrollFrameScrollBar:SetValue(0)
+	FauxScrollFrame_SetOffset(ClassTrainerPlusListScrollFrame, 0)
+
 	_G["TRAINER_FILTER_" .. strupper(self.value)] = newFilterValue
 	if (self.value == "ignored") then
 		TrainerUpdateHandler()
@@ -807,7 +810,6 @@ function ClassTrainerPlusFrameFilterDropDown_OnClick(self)
 		SetTrainerServiceTypeFilter(self.value, newFilterValue)
 	end
 
-	ClassTrainerPlusListScrollFrameScrollBar:SetValue(0)
 end
 
 local function trim(str)
