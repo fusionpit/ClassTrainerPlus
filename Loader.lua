@@ -1,3 +1,3 @@
 ClassTrainerFrame_LoadUI = function()
-    ClassTrainerFrame_Show()
+    ClassTrainerPlusFrame_Show()
 end

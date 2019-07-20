@@ -74,9 +74,9 @@ ctp.Abilities = {
 		for _, spellId in pairs(table) do
             self:_storeSpellInfo(spellId, false, function(key) 
 				self._spellIds[spellId] = key;
-				if (ClassTrainerFrame and ClassTrainerFrame:IsVisible()) then
+				if (ClassTrainerPlusFrame and ClassTrainerPlusFrame:IsVisible()) then
 					CTP_UpdateService();
-					ClassTrainerFrame_Update();
+					ClassTrainerPlusFrame_Update();
 				end
             end);
 		end

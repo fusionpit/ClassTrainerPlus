@@ -68,9 +68,9 @@ ctp.Abilities:Load(classSpellIds)
 
 local function UpdateUserFilters()
 	ctp.Abilities:Update(ClassTrainerPlusDBPC)
-	CTP_UpdateService()
-	if (ClassTrainerFrame and ClassTrainerFrame:IsVisible()) then
-		ClassTrainerFrame_Update()
+	ctp.TrainerServices:Update();
+	if (ClassTrainerPlusFrame and ClassTrainerPlusFrame:IsVisible()) then
+		ClassTrainerPlusFrame_Update()
 	end
 end
 
@@ -80,20 +80,20 @@ StaticPopupDialogs["CONFIRM_PROFESSION"] = {
 	button1 = ACCEPT,
 	button2 = CANCEL,
 	OnAccept = function()
-		BuyTrainerService(ClassTrainerFrame.selectedService)
-		ClassTrainerFrame.showSkillDetails = nil
-		ClassTrainer_SetSelection(ClassTrainerFrame.selectedService)
-		ClassTrainerFrame_Update()
+		BuyTrainerService(ClassTrainerPlusFrame.selectedService)
+		ClassTrainerPlusFrame.showSkillDetails = nil
+		ClassTrainerPlus_SetSelection(ClassTrainerPlusFrame.selectedService)
+		ClassTrainerPlusFrame_Update()
 	end,
 	OnShow = function(self)
 		local profCount = GetNumPrimaryProfessions()
 		if (profCount == 0) then
 			_G[self:GetName() .. "Text"]:SetText(
-				format(PROFESSION_CONFIRMATION1, GetTrainerServiceSkillLine(ClassTrainerFrame.selectedService))
+				format(PROFESSION_CONFIRMATION1, GetTrainerServiceSkillLine(ClassTrainerPlusFrame.selectedService))
 			)
 		else
 			_G[self:GetName() .. "Text"]:SetText(
-				format(PROFESSION_CONFIRMATION2, GetTrainerServiceSkillLine(ClassTrainerFrame.selectedService))
+				format(PROFESSION_CONFIRMATION2, GetTrainerServiceSkillLine(ClassTrainerPlusFrame.selectedService))
 			)
 		end
 	end,
@@ -102,38 +102,40 @@ StaticPopupDialogs["CONFIRM_PROFESSION"] = {
 	hideOnEscape = 1
 }
 
-function ClassTrainerFrame_Show()
-	ShowUIPanel(ClassTrainerFrame)
-	if (not ClassTrainerFrame:IsVisible()) then
+function ClassTrainerPlusFrame_Show()
+	--ShowUIPanel(ClassTrainerPlusFrame)
+	ClassTrainerPlusFrame:Show();
+	if (not ClassTrainerPlusFrame:IsVisible()) then
 		CloseTrainer()
 		return
 	end
 
-	ClassTrainerTrainButton:Disable()
+	ClassTrainerPlusTrainButton:Disable()
 	--Reset scrollbar
-	ClassTrainerListScrollFrameScrollBar:SetMinMaxValues(0, 0)
-	ClassTrainerListScrollFrameScrollBar:SetValue(0)
+	ClassTrainerPlusListScrollFrameScrollBar:SetMinMaxValues(0, 0)
+	ClassTrainerPlusListScrollFrameScrollBar:SetValue(0)
 
-	ClassTrainer_SelectFirstLearnableSkill()
+	ClassTrainerPlus_SelectFirstLearnableSkill()
 
 	ctp.TrainerServices:Update()
-	ClassTrainerFrame_Update()
+	ClassTrainerPlusFrame_Update()
 	UpdateMicroButtons()
 end
 
-function ClassTrainerFrame_Hide()
-	HideUIPanel(ClassTrainerFrame)
+function ClassTrainerPlusFrame_Hide()
+	--HideUIPanel(ClassTrainerPlusFrame)
+	ClassTrainerPlusFrame:Hide();
 end
 
-function ClassTrainerFrame_OnLoad(self)
+function ClassTrainerPlusFrame_OnLoad(self)
 	self:RegisterEvent("TRAINER_UPDATE")
 	self:RegisterEvent("TRAINER_DESCRIPTION_UPDATE")
 	self:RegisterEvent("TRAINER_SERVICE_INFO_NAME_UPDATE")
 	self:RegisterEvent("ADDON_LOADED")
-	ClassTrainerDetailScrollFrame.scrollBarHideable = 1
+	ClassTrainerPlusDetailScrollFrame.scrollBarHideable = 1
 	-- Set each skill button to handle right clicks
 	for i = 1, CLASS_TRAINER_SKILLS_DISPLAYED, 1 do
-		local skillButton = _G["ClassTrainerSkill" .. i]
+		local skillButton = _G["ClassTrainerPlusSkill" .. i]
 		skillButton:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 	end
 end
@@ -146,8 +148,8 @@ local function TrainerUpdateHandler()
 		-- Select the first available ability
 		local service = ctp.TrainerServices:GetService(selectedIndex)
 		if (selectedIndex > ctp.TrainerServices.totalServices) then
-			FauxScrollFrame_SetOffset(ClassTrainerListScrollFrame, 0)
-			ClassTrainerListScrollFrameScrollBar:SetValue(0)
+			FauxScrollFrame_SetOffset(ClassTrainerPlusListScrollFrame, 0)
+			ClassTrainerPlusListScrollFrameScrollBar:SetValue(0)
 			local firstAbility = ctp.TrainerServices:GetFirstVisibleNonHeaderService()
 			if (firstAbility == nil) then
 				selectedIndex = nil
@@ -163,14 +165,14 @@ local function TrainerUpdateHandler()
 				selectedIndex = nil
 			end
 		end
-		ClassTrainer_SetSelection(selectedIndex)
+		ClassTrainerPlus_SetSelection(selectedIndex)
 	else
-		ClassTrainer_SelectFirstLearnableSkill()
+		ClassTrainerPlus_SelectFirstLearnableSkill()
 	end
-	ClassTrainerFrame_Update()
+	ClassTrainerPlusFrame_Update()
 end
 
-function ClassTrainerFrame_OnEvent(self, event, ...)
+function ClassTrainerPlusFrame_OnEvent(self, event, ...)
 	if (event == "ADDON_LOADED" and ... == "ClassTrainerPlus") then
 		SetTrainerServiceTypeFilter("available", TRAINER_FILTER_AVAILABLE)
 		SetTrainerServiceTypeFilter("unavailable", TRAINER_FILTER_UNAVAILABLE)
@@ -184,7 +186,7 @@ function ClassTrainerFrame_OnEvent(self, event, ...)
 	if (event == "TRAINER_UPDATE") then
 		TrainerUpdateHandler()
 	elseif (event == "TRAINER_DESCRIPTION_UPDATE") then
-		ClassTrainer_SetSelection(GetTrainerSelectionIndex())
+		ClassTrainerPlus_SetSelection(GetTrainerSelectionIndex())
 	elseif (event == "TRAINER_SERVICE_INFO_NAME_UPDATE") then
 		-- It would be really cool if I could uniquely identify the button associated
 		-- with a particular spell here, and only update the name on that button.
@@ -192,56 +194,56 @@ function ClassTrainerFrame_OnEvent(self, event, ...)
 	end
 end
 
-function ClassTrainerFrame_Update()
-	SetPortraitTexture(ClassTrainerFramePortrait, "npc")
-	ClassTrainerNameText:SetText(UnitName("npc"))
-	ClassTrainerGreetingText:SetText(GetTrainerGreetingText())
+function ClassTrainerPlusFrame_Update()
+	SetPortraitTexture(ClassTrainerPlusFramePortrait, "npc")
+	ClassTrainerPlusNameText:SetText(UnitName("npc"))
+	ClassTrainerPlusGreetingText:SetText(GetTrainerGreetingText())
 	local numFilteredTrainerServices = ctp.TrainerServices.visibleServices
-	local skillOffset = FauxScrollFrame_GetOffset(ClassTrainerListScrollFrame)
+	local skillOffset = FauxScrollFrame_GetOffset(ClassTrainerPlusListScrollFrame)
 
 	-- If no spells then clear everything out
 	if (numFilteredTrainerServices == 0) then
-		ClassTrainerCollapseAllButton:Disable()
-		ClassTrainerFrame.selectedService = nil
+		ClassTrainerPlusCollapseAllButton:Disable()
+		ClassTrainerPlusFrame.selectedService = nil
 	else
-		ClassTrainerCollapseAllButton:Enable()
+		ClassTrainerPlusCollapseAllButton:Enable()
 	end
 
 	-- If selectedService is nil hide everything
-	if (not ClassTrainerFrame.selectedService) then
-		ClassTrainer_HideSkillDetails()
-		ClassTrainerTrainButton:Disable()
+	if (not ClassTrainerPlusFrame.selectedService) then
+		ClassTrainerPlus_HideSkillDetails()
+		ClassTrainerPlusTrainButton:Disable()
 	end
 
 	-- Change the setup depending on if its a class trainer or tradeskill trainer
 	if (IsTradeskillTrainer()) then
-		ClassTrainer_SetToTradeSkillTrainer()
+		ClassTrainerPlus_SetToTradeSkillTrainer()
 	else
-		ClassTrainer_SetToClassTrainer()
+		ClassTrainerPlus_SetToClassTrainerPlus()
 	end
 
 	-- ScrollFrame update
 	FauxScrollFrame_Update(
-		ClassTrainerListScrollFrame,
+		ClassTrainerPlusListScrollFrame,
 		numFilteredTrainerServices,
 		CLASS_TRAINER_SKILLS_DISPLAYED,
 		CLASS_TRAINER_SKILL_HEIGHT,
 		nil,
 		nil,
 		nil,
-		ClassTrainerSkillHighlightFrame,
+		ClassTrainerPlusSkillHighlightFrame,
 		293,
 		316
 	)
 
-	--ClassTrainerUsedButton:Show();
-	ClassTrainerMoneyFrame:Show()
+	--ClassTrainerPlusUsedButton:Show();
+	ClassTrainerPlusMoneyFrame:Show()
 
-	ClassTrainerSkillHighlightFrame:Hide()
+	ClassTrainerPlusSkillHighlightFrame:Hide()
 	-- Fill in the skill buttons
 	for i = 1, CLASS_TRAINER_SKILLS_DISPLAYED, 1 do
 		local skillIndex = i + skillOffset
-		local skillButton = _G["ClassTrainerSkill" .. i]
+		local skillButton = _G["ClassTrainerPlusSkill" .. i]
 		local serviceName, serviceSubText, serviceType, isExpanded
 		local moneyCost
 
@@ -256,15 +258,15 @@ function ClassTrainerFrame_Update()
 			end
 
 			-- Set button widths if scrollbar is shown or hidden
-			if (ClassTrainerListScrollFrame:IsVisible()) then
+			if (ClassTrainerPlusListScrollFrame:IsVisible()) then
 				skillButton:SetWidth(293)
 			else
 				skillButton:SetWidth(323)
 			end
-			local skillSubText = _G["ClassTrainerSkill" .. i .. "SubText"]
+			local skillSubText = _G["ClassTrainerPlusSkill" .. i .. "SubText"]
 			-- Type stuff
 			if (serviceType == "header") then
-				local skillText = _G["ClassTrainerSkill" .. i .. "Text"]
+				local skillText = _G["ClassTrainerPlusSkill" .. i .. "Text"]
 				skillText:SetText(serviceName)
 				skillButton:SetNormalFontObject("GameFontNormal")
 
@@ -274,15 +276,15 @@ function ClassTrainerFrame_Update()
 				else
 					skillButton:SetNormalTexture("Interface\\Buttons\\UI-PlusButton-Up")
 				end
-				_G["ClassTrainerSkill" .. i .. "Highlight"]:SetTexture("Interface\\Buttons\\UI-PlusButton-Hilight")
+				_G["ClassTrainerPlusSkill" .. i .. "Highlight"]:SetTexture("Interface\\Buttons\\UI-PlusButton-Hilight")
 			else
 				skillButton:SetNormalTexture("")
-				_G["ClassTrainerSkill" .. i .. "Highlight"]:SetTexture("")
-				local skillText = _G["ClassTrainerSkill" .. i .. "Text"]
+				_G["ClassTrainerPlusSkill" .. i .. "Highlight"]:SetTexture("")
+				local skillText = _G["ClassTrainerPlusSkill" .. i .. "Text"]
 				skillText:SetText("  " .. serviceName)
 				if (serviceSubText and serviceSubText ~= "") then
 					skillSubText:SetText(format(PARENS_TEMPLATE, serviceSubText))
-					skillSubText:SetPoint("LEFT", "ClassTrainerSkill" .. i .. "Text", "RIGHT", 10, 0)
+					skillSubText:SetPoint("LEFT", "ClassTrainerPlusSkill" .. i .. "Text", "RIGHT", 10, 0)
 					skillSubText:Show()
 				else
 					skillSubText:Hide()
@@ -293,32 +295,32 @@ function ClassTrainerFrame_Update()
 				if (serviceType == "available") then
 					if (not service.isIgnored) then
 						skillButton:SetNormalFontObject("GameFontNormalLeftGreen")
-						ClassTrainer_SetSubTextColor(skillButton, 0, 0.6, 0)
+						ClassTrainerPlus_SetSubTextColor(skillButton, 0, 0.6, 0)
 					else
 						skillButton:SetNormalFontObject("ClassTrainerPlusIgnoredFont")
-						ClassTrainer_SetSubTextColor(skillButton, 0.6, 0.6, 0.1)
+						ClassTrainerPlus_SetSubTextColor(skillButton, 0.6, 0.6, 0.1)
 					end
 				elseif (serviceType == "used") then
 					skillButton:SetNormalFontObject("GameFontDisable")
-					ClassTrainer_SetSubTextColor(skillButton, 0.5, 0.5, 0.5)
+					ClassTrainerPlus_SetSubTextColor(skillButton, 0.5, 0.5, 0.5)
 				else
 					if (service.isIgnored) then
 						skillButton:SetText(skillButton:GetText() .. " |cFFffffa3*|r")
 					end
 					skillButton:SetNormalFontObject("GameFontNormalLeftRed")
-					ClassTrainer_SetSubTextColor(skillButton, 0.6, 0, 0)
+					ClassTrainerPlus_SetSubTextColor(skillButton, 0.6, 0, 0)
 				end
 			end
 			skillButton:SetID(service.serviceId)
 			skillButton:Show()
 			-- Place the highlight and lock the highlight state
 			if (ctp.TrainerServices:IsSelected(service.serviceId)) then
-				ClassTrainerSkillHighlightFrame:SetPoint("TOPLEFT", "ClassTrainerSkill" .. i, "TOPLEFT", 0, 0)
-				ClassTrainerSkillHighlightFrame:Show()
+				ClassTrainerPlusSkillHighlightFrame:SetPoint("TOPLEFT", "ClassTrainerPlusSkill" .. i, "TOPLEFT", 0, 0)
+				ClassTrainerPlusSkillHighlightFrame:Show()
 				skillButton:LockHighlight()
-				ClassTrainer_SetSubTextColor(skillButton, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
+				ClassTrainerPlus_SetSubTextColor(skillButton, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
 				if (moneyCost and moneyCost > 0) then
-					ClassTrainerCostLabel:Show()
+					ClassTrainerPlusCostLabel:Show()
 				end
 			else
 				skillButton:UnlockHighlight()
@@ -329,47 +331,47 @@ function ClassTrainerFrame_Update()
 	end
 
 	-- Show skill details if the skill is visible
-	if (ctp.TrainerServices:IsSelected(ClassTrainerFrame.selectedService)) then
-		ClassTrainer_ShowSkillDetails()
+	if (ctp.TrainerServices:IsSelected(ClassTrainerPlusFrame.selectedService)) then
+		ClassTrainerPlus_ShowSkillDetails()
 	else
-		ClassTrainer_HideSkillDetails()
+		ClassTrainerPlus_HideSkillDetails()
 	end
 	-- Set the expand/collapse all button texture
 	if (ctp.TrainerServices.allHeadersCollapsed) then
-		ClassTrainerCollapseAllButton.collapsed = 1
-		ClassTrainerCollapseAllButton:SetNormalTexture("Interface\\Buttons\\UI-PlusButton-Up")
+		ClassTrainerPlusCollapseAllButton.collapsed = 1
+		ClassTrainerPlusCollapseAllButton:SetNormalTexture("Interface\\Buttons\\UI-PlusButton-Up")
 	else
-		ClassTrainerCollapseAllButton.collapsed = nil
-		ClassTrainerCollapseAllButton:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-Up")
+		ClassTrainerPlusCollapseAllButton.collapsed = nil
+		ClassTrainerPlusCollapseAllButton:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-Up")
 	end
 end
 
-function ClassTrainer_SelectFirstLearnableSkill()
+function ClassTrainerPlus_SelectFirstLearnableSkill()
 	if (ctp.TrainerServices.visibleServices > 0) then
-		ClassTrainerFrame.showSkillDetails = 1
+		ClassTrainerPlusFrame.showSkillDetails = 1
 		local firstAbility = ctp.TrainerServices:GetFirstVisibleNonHeaderService()
 		if (firstAbility ~= nil) then
-			ClassTrainer_SetSelection(firstAbility.serviceId)
+			ClassTrainerPlus_SetSelection(firstAbility.serviceId)
 		else
-			ClassTrainerFrame.showSkillDetails = nil
-			ClassTrainerFrame.selectedService = nil
-			ClassTrainer_SetSelection()
+			ClassTrainerPlusFrame.showSkillDetails = nil
+			ClassTrainerPlusFrame.selectedService = nil
+			ClassTrainerPlus_SetSelection()
 		end
 
-		FauxScrollFrame_SetOffset(ClassTrainerListScrollFrame, 0)
+		FauxScrollFrame_SetOffset(ClassTrainerPlusListScrollFrame, 0)
 	else
-		ClassTrainerFrame.showSkillDetails = nil
-		ClassTrainerFrame.selectedService = nil
-		ClassTrainer_SetSelection()
+		ClassTrainerPlusFrame.showSkillDetails = nil
+		ClassTrainerPlusFrame.selectedService = nil
+		ClassTrainerPlus_SetSelection()
 	end
-	ClassTrainerListScrollFrame:SetVerticalScroll(0)
+	ClassTrainerPlusListScrollFrame:SetVerticalScroll(0)
 end
 
-function ClassTrainer_SetSelection(id)
+function ClassTrainerPlus_SetSelection(id)
 	-- General Info
 	if (not id) then
-		ClassTrainer_HideSkillDetails()
-		ClassTrainerTrainButton:Disable()
+		ClassTrainerPlus_HideSkillDetails()
+		ClassTrainerPlusTrainButton:Disable()
 		return
 	end
 
@@ -381,21 +383,21 @@ function ClassTrainer_SetSelection(id)
 	serviceType = service.type
 	isExpanded = service.isExpanded
 
-	ClassTrainerSkillHighlightFrame:Show()
+	ClassTrainerPlusSkillHighlightFrame:Show()
 
 	if (serviceType == "available") then
 		if (not service.isIgnored) then
-			ClassTrainerSkillHighlight:SetVertexColor(0, 1.0, 0)
+			ClassTrainerPlusSkillHighlight:SetVertexColor(0, 1.0, 0)
 		else
-			ClassTrainerSkillHighlight:SetVertexColor(1.0, 1.0, 0.6)
+			ClassTrainerPlusSkillHighlight:SetVertexColor(1.0, 1.0, 0.6)
 		end
 	elseif (serviceType == "used") then
-		ClassTrainerSkillHighlight:SetVertexColor(0.5, 0.5, 0.5)
+		ClassTrainerPlusSkillHighlight:SetVertexColor(0.5, 0.5, 0.5)
 	elseif (serviceType == "unavailable") then
-		ClassTrainerSkillHighlight:SetVertexColor(0.9, 0, 0)
+		ClassTrainerPlusSkillHighlight:SetVertexColor(0.9, 0, 0)
 	else
 		-- Is header, so collapse or expand header
-		ClassTrainerSkillHighlightFrame:Hide()
+		ClassTrainerPlusSkillHighlightFrame:Hide()
 
 		if (isExpanded) then
 			CollapseTrainerSkillLine(id)
@@ -404,25 +406,25 @@ function ClassTrainer_SetSelection(id)
 		end
 		return
 	end
-	if (ClassTrainerFrame.showSkillDetails) then
-		ClassTrainer_ShowSkillDetails()
+	if (ClassTrainerPlusFrame.showSkillDetails) then
+		ClassTrainerPlus_ShowSkillDetails()
 	else
-		ClassTrainer_HideSkillDetails()
-		--ClassTrainerTrainButton:Disable();
+		ClassTrainerPlus_HideSkillDetails()
+		--ClassTrainerPlusTrainButton:Disable();
 		return
 	end
 
 	if (not serviceName) then
 		serviceName = UNKNOWN
 	end
-	ClassTrainerSkillName:SetText(serviceName)
+	ClassTrainerPlusSkillName:SetText(serviceName)
 	if (not serviceSubText) then
 		serviceSubText = ""
 	end
-	ClassTrainerSubSkillName:SetText(PARENS_TEMPLATE:format(serviceSubText))
-	ClassTrainerFrame.selectedService = id
+	ClassTrainerPlusSubSkillName:SetText(PARENS_TEMPLATE:format(serviceSubText))
+	ClassTrainerPlusFrame.selectedService = id
 	SelectTrainerService(id)
-	ClassTrainerSkillIcon:SetNormalTexture(GetTrainerServiceIcon(id))
+	ClassTrainerPlusSkillIcon:SetNormalTexture(GetTrainerServiceIcon(id))
 	-- Build up the requirements string
 	local requirements = ""
 	-- Level Requirements
@@ -473,48 +475,48 @@ function ClassTrainer_SetSelection(id)
 		end
 	end
 	if (requirements ~= "") then
-		ClassTrainerSkillRequirements:SetText(REQUIRES_LABEL .. " " .. requirements)
+		ClassTrainerPlusSkillRequirements:SetText(REQUIRES_LABEL .. " " .. requirements)
 	else
-		ClassTrainerSkillRequirements:SetText("")
+		ClassTrainerPlusSkillRequirements:SetText("")
 	end
 	-- Money Frame and cost
 	local moneyCost, isProfession = GetTrainerServiceCost(id)
 	local unavailable
 	if (moneyCost == 0) then
-		ClassTrainerDetailMoneyFrame:Hide()
-		ClassTrainerCostLabel:Hide()
-		ClassTrainerSkillDescription:SetPoint("TOPLEFT", "ClassTrainerCostLabel", "TOPLEFT", 0, 0)
+		ClassTrainerPlusDetailMoneyFrame:Hide()
+		ClassTrainerPlusCostLabel:Hide()
+		ClassTrainerPlusSkillDescription:SetPoint("TOPLEFT", "ClassTrainerPlusCostLabel", "TOPLEFT", 0, 0)
 	else
-		ClassTrainerDetailMoneyFrame:Show()
-		ClassTrainerCostLabel:Show()
-		ClassTrainerSkillDescription:SetPoint("TOPLEFT", "ClassTrainerCostLabel", "BOTTOMLEFT", 0, -10)
+		ClassTrainerPlusDetailMoneyFrame:Show()
+		ClassTrainerPlusCostLabel:Show()
+		ClassTrainerPlusSkillDescription:SetPoint("TOPLEFT", "ClassTrainerPlusCostLabel", "BOTTOMLEFT", 0, -10)
 		if (GetMoney() >= moneyCost) then
-			SetMoneyFrameColor("ClassTrainerDetailMoneyFrame", "white")
+			SetMoneyFrameColor("ClassTrainerPlusDetailMoneyFrame", "white")
 		else
-			SetMoneyFrameColor("ClassTrainerDetailMoneyFrame", "red")
+			SetMoneyFrameColor("ClassTrainerPlusDetailMoneyFrame", "red")
 			unavailable = 1
 		end
 	end
 
-	MoneyFrame_Update("ClassTrainerDetailMoneyFrame", moneyCost)
+	MoneyFrame_Update("ClassTrainerPlusDetailMoneyFrame", moneyCost)
 	if (isProfession) then
-		ClassTrainerFrame.showDialog = true
+		ClassTrainerPlusFrame.showDialog = true
 		local profCount = GetNumPrimaryProfessions()
 		if profCount >= 2 then
 			unavailable = 1
 		end
 	else
-		ClassTrainerFrame.showDialog = nil
+		ClassTrainerPlusFrame.showDialog = nil
 	end
 	if (not showIgnored and service.isIgnored) then
 		unavailable = 1
 	end
 
-	ClassTrainerSkillDescription:SetText(GetTrainerServiceDescription(id))
+	ClassTrainerPlusSkillDescription:SetText(GetTrainerServiceDescription(id))
 	if (serviceType == "available" and not unavailable) then
-		ClassTrainerTrainButton:Enable()
+		ClassTrainerPlusTrainButton:Enable()
 	else
-		ClassTrainerTrainButton:Disable()
+		ClassTrainerPlusTrainButton:Disable()
 	end
 
 	-- Determine what type of spell to display
@@ -523,10 +525,10 @@ function ClassTrainer_SetSelection(id)
 	isLearnSpell, isPetLearnSpell = IsTrainerServiceLearnSpell(id)
 	if (isLearnSpell) then
 		if (isPetLearnSpell) then
-			ClassTrainerSkillName:SetText(ClassTrainerSkillName:GetText() .. TRAINER_PET_SPELL_LABEL)
+			ClassTrainerPlusSkillName:SetText(ClassTrainerPlusSkillName:GetText() .. TRAINER_PET_SPELL_LABEL)
 		end
 	end
-	ClassTrainerDetailScrollFrame:UpdateScrollChildRect()
+	ClassTrainerPlusDetailScrollFrame:UpdateScrollChildRect()
 
 	-- Close the confirmation dialog if you choose a different skill
 	if (StaticPopup_Visible("CONFIRM_PROFESSION")) then
@@ -534,17 +536,17 @@ function ClassTrainer_SetSelection(id)
 	end
 end
 
-function ClassTrainerSkillButton_OnClick(self, button)
+function ClassTrainerPlusSkillButton_OnClick(self, button)
 	if (ClassTrainerPlusToggleFrame ~= nil and ClassTrainerPlusToggleFrame:IsVisible()) then
 		CloseDropDownMenus()
 	end
 
 	if (button == "LeftButton") then
 		local service = ctp.TrainerServices:GetService(self:GetID())
-		ClassTrainerFrame.selectedService = service.serviceId
-		ClassTrainerFrame.showSkillDetails = 1
-		ClassTrainer_SetSelection(self:GetID())
-		ClassTrainerFrame_Update()
+		ClassTrainerPlusFrame.selectedService = service.serviceId
+		ClassTrainerPlusFrame.showSkillDetails = 1
+		ClassTrainerPlus_SetSelection(self:GetID())
+		ClassTrainerPlusFrame_Update()
 	elseif (button == "RightButton" and not IsTradeskillTrainer()) then
 		local service = ctp.TrainerServices:GetService(self:GetID())
 		if (service.type == "header" or service.type == "used") then
@@ -571,7 +573,7 @@ function ClassTrainerSkillButton_OnClick(self, button)
 						end
 						ClassTrainerPlusDBPC[spellId] = not ClassTrainerPlusDBPC[spellId]
 					else
-						print(format("CTP: could not find spell for %s", service.name))
+						print(format("ClassTrainerPlus: could not find spell for %s", service.name))
 					end
 					UpdateUserFilters()
 					TrainerUpdateHandler()
@@ -584,84 +586,84 @@ function ClassTrainerSkillButton_OnClick(self, button)
 	end
 end
 
-function ClassTrainerTrainButton_OnClick()
-	if (IsTradeskillTrainer() and ClassTrainerFrame.showDialog) then
+function ClassTrainerPlusTrainButton_OnClick()
+	if (IsTradeskillTrainer() and ClassTrainerPlusFrame.showDialog) then
 		StaticPopup_Show("CONFIRM_PROFESSION")
 	else
-		BuyTrainerService(ClassTrainerFrame.selectedService)
-		local nextSelection = ctp.TrainerServices:GetNextAvailableServiceId(ClassTrainerFrame.selectedService)
+		BuyTrainerService(ClassTrainerPlusFrame.selectedService)
+		local nextSelection = ctp.TrainerServices:GetNextAvailableServiceId(ClassTrainerPlusFrame.selectedService)
 
 		if (nextSelection ~= nil and nextSelection <= ctp.TrainerServices.totalServices) then
-			ClassTrainerFrame.showSkillDetails = 1
-			ClassTrainer_SetSelection(nextSelection)
+			ClassTrainerPlusFrame.showSkillDetails = 1
+			ClassTrainerPlus_SetSelection(nextSelection)
 		else
-			ClassTrainerFrame.showSkillDetails = nil
-			ClassTrainerFrame.selectedService = nil
+			ClassTrainerPlusFrame.showSkillDetails = nil
+			ClassTrainerPlusFrame.selectedService = nil
 		end
 
-		ClassTrainerFrame_Update()
+		ClassTrainerPlusFrame_Update()
 	end
 end
 
-function ClassTrainer_SetSubTextColor(button, r, g, b)
+function ClassTrainerPlus_SetSubTextColor(button, r, g, b)
 	button.subR = r
 	button.subG = g
 	button.subB = b
 	_G[button:GetName() .. "SubText"]:SetTextColor(r, g, b)
 end
 
-function ClassTrainerCollapseAllButton_OnClick(self)
+function ClassTrainerPlusCollapseAllButton_OnClick(self)
 	if (self.collapsed) then
 		self.collapsed = nil
 		ExpandTrainerSkillLine(0)
 	else
 		self.collapsed = 1
-		ClassTrainerListScrollFrameScrollBar:SetValue(0)
+		ClassTrainerPlusListScrollFrameScrollBar:SetValue(0)
 		CollapseTrainerSkillLine(0)
 	end
 end
 
-function ClassTrainer_HideSkillDetails()
-	ClassTrainerSkillName:Hide()
-	ClassTrainerSkillIcon:Hide()
-	ClassTrainerSkillRequirements:Hide()
-	ClassTrainerSkillDescription:Hide()
-	ClassTrainerDetailMoneyFrame:Hide()
-	ClassTrainerCostLabel:Hide()
+function ClassTrainerPlus_HideSkillDetails()
+	ClassTrainerPlusSkillName:Hide()
+	ClassTrainerPlusSkillIcon:Hide()
+	ClassTrainerPlusSkillRequirements:Hide()
+	ClassTrainerPlusSkillDescription:Hide()
+	ClassTrainerPlusDetailMoneyFrame:Hide()
+	ClassTrainerPlusCostLabel:Hide()
 end
 
-function ClassTrainer_ShowSkillDetails()
-	ClassTrainerSkillName:Show()
-	ClassTrainerSkillIcon:Show()
-	ClassTrainerSkillRequirements:Show()
-	ClassTrainerSkillDescription:Show()
-	ClassTrainerDetailMoneyFrame:Show()
-	--ClassTrainerCostLabel:Show();
+function ClassTrainerPlus_ShowSkillDetails()
+	ClassTrainerPlusSkillName:Show()
+	ClassTrainerPlusSkillIcon:Show()
+	ClassTrainerPlusSkillRequirements:Show()
+	ClassTrainerPlusSkillDescription:Show()
+	ClassTrainerPlusDetailMoneyFrame:Show()
+	--ClassTrainerPlusCostLabel:Show();
 end
 
-function ClassTrainer_SetToTradeSkillTrainer()
+function ClassTrainerPlus_SetToTradeSkillTrainer()
 	CLASS_TRAINER_SKILLS_DISPLAYED = 10
-	ClassTrainerSkill11:Hide()
-	ClassTrainerListScrollFrame:SetHeight(168)
-	ClassTrainerDetailScrollFrame:SetHeight(135)
-	ClassTrainerHorizontalBarLeft:SetPoint("TOPLEFT", "ClassTrainerFrame", "TOPLEFT", 15, -259)
+	ClassTrainerPlusSkill11:Hide()
+	ClassTrainerPlusListScrollFrame:SetHeight(168)
+	ClassTrainerPlusDetailScrollFrame:SetHeight(135)
+	ClassTrainerPlusHorizontalBarLeft:SetPoint("TOPLEFT", "ClassTrainerPlusFrame", "TOPLEFT", 15, -259)
 end
 
-function ClassTrainer_SetToClassTrainer()
+function ClassTrainerPlus_SetToClassTrainerPlus()
 	CLASS_TRAINER_SKILLS_DISPLAYED = 11
-	ClassTrainerListScrollFrame:SetHeight(184)
-	ClassTrainerDetailScrollFrame:SetHeight(119)
-	ClassTrainerHorizontalBarLeft:SetPoint("TOPLEFT", "ClassTrainerFrame", "TOPLEFT", 15, -275)
+	ClassTrainerPlusListScrollFrame:SetHeight(184)
+	ClassTrainerPlusDetailScrollFrame:SetHeight(119)
+	ClassTrainerPlusHorizontalBarLeft:SetPoint("TOPLEFT", "ClassTrainerPlusFrame", "TOPLEFT", 15, -275)
 end
 
 -- Dropdown functions
-function ClassTrainerFrameFilterDropDown_OnLoad(self)
-	UIDropDownMenu_Initialize(self, ClassTrainerFrameFilterDropDown_Initialize)
+function ClassTrainerPlusFrameFilterDropDown_OnLoad(self)
+	UIDropDownMenu_Initialize(self, ClassTrainerPlusFrameFilterDropDown_Initialize)
 	UIDropDownMenu_SetText(self, FILTER)
 	UIDropDownMenu_SetWidth(self, 130)
 end
 
-function ClassTrainerFrameFilterDropDown_Initialize()
+function ClassTrainerPlusFrameFilterDropDown_Initialize()
 	-- Available button
 	local info = {}
 	local checked = nil
@@ -670,7 +672,7 @@ function ClassTrainerFrameFilterDropDown_Initialize()
 	end
 	info.text = GREEN_FONT_COLOR_CODE .. AVAILABLE .. FONT_COLOR_CODE_CLOSE
 	info.value = "available"
-	info.func = ClassTrainerFrameFilterDropDown_OnClick
+	info.func = ClassTrainerPlusFrameFilterDropDown_OnClick
 	info.checked = checked
 	info.keepShownOnClick = 1
 	info.classicChecks = true
@@ -685,7 +687,7 @@ function ClassTrainerFrameFilterDropDown_Initialize()
 		end
 		info.text = LIGHTYELLOW_FONT_COLOR_CODE .. ctp.L["IGNORED"] .. FONT_COLOR_CODE_CLOSE
 		info.value = "ignored"
-		info.func = ClassTrainerFrameFilterDropDown_OnClick
+		info.func = ClassTrainerPlusFrameFilterDropDown_OnClick
 		info.checked = checked
 		info.keepShownOnClick = 1
 		info.classicChecks = true
@@ -700,7 +702,7 @@ function ClassTrainerFrameFilterDropDown_Initialize()
 	end
 	info.text = RED_FONT_COLOR_CODE .. UNAVAILABLE .. FONT_COLOR_CODE_CLOSE
 	info.value = "unavailable"
-	info.func = ClassTrainerFrameFilterDropDown_OnClick
+	info.func = ClassTrainerPlusFrameFilterDropDown_OnClick
 	info.checked = checked
 	info.keepShownOnClick = 1
 	info.classicChecks = true
@@ -714,14 +716,14 @@ function ClassTrainerFrameFilterDropDown_Initialize()
 	end
 	info.text = GRAY_FONT_COLOR_CODE .. USED .. FONT_COLOR_CODE_CLOSE
 	info.value = "used"
-	info.func = ClassTrainerFrameFilterDropDown_OnClick
+	info.func = ClassTrainerPlusFrameFilterDropDown_OnClick
 	info.checked = checked
 	info.keepShownOnClick = 1
 	info.classicChecks = true
 	UIDropDownMenu_AddButton(info)
 end
 
-function ClassTrainerFrameFilterDropDown_OnClick(self)
+function ClassTrainerPlusFrameFilterDropDown_OnClick(self)
 	local newFilterValue = 0
 	if (UIDropDownMenuButton_GetChecked(self)) then
 		newFilterValue = 1
@@ -734,21 +736,21 @@ function ClassTrainerFrameFilterDropDown_OnClick(self)
 		SetTrainerServiceTypeFilter(self.value, newFilterValue)
 	end
 
-	ClassTrainerListScrollFrameScrollBar:SetValue(0)
+	ClassTrainerPlusListScrollFrameScrollBar:SetValue(0)
 end
 
 local function trim(str)
 	return (string.gsub(str, "^%s*(.-)%s*$", "%1"))
 end
 
-SLASH_CTP1 = "/ctp"
-SLASH_CTP2 = "/classtrainerplus"
-SlashCmdList["CTP"] = function(msg)
+SLASH_ClassTrainerPlus1 = "/ctp"
+SLASH_ClassTrainerPlus2 = "/ClassTrainerPlus"
+SlashCmdList["ClassTrainerPlus"] = function(msg)
 	local _, _, cmd, args = string.find(msg, "%s?(%w+)%s?(.*)")
 	cmd = trim(string.lower(cmd))
 	args = trim(string.lower(args))
 	if (cmd == "sa") then
-		CTP_ShowAll()
+		ClassTrainerPlus_ShowAll()
 	end
 	if (cmd == "import" and args == "") then
 		print("You must include the import string when importing")
