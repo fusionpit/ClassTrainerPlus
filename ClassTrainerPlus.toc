@@ -1,10 +1,12 @@
 ## Interface: 11302
 ## Title: Class Trainer Plus
-## Version: 0.1-beta
+## Version: @project-version@
 ## Author: Sveng
 ## Notes: Lets you hide abilities from class trainers that you don't care about
 ## SavedVariables: TRAINER_FILTER_AVAILABLE, TRAINER_FILTER_UNAVAILABLE, TRAINER_FILTER_USED
 ## SavedVariablesPerCharacter: TRAINER_FILTER_IGNORED, ClassTrainerPlusDBPC
+## X-Curse-Project-ID: 324903
+## X-WoWI-ID: 25029
 
 Classes\Druid.lua
 Classes\Hunter.lua

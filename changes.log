@@ -1,0 +1,4 @@
+* 0.2-beta
+    - Should not try to scan for tooltip names of profession trainers
+    - Added "Train All" button when Shift is held
+    - Added search box
