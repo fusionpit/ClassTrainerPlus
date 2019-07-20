@@ -2,6 +2,7 @@ local _, ctp = ...
 
 ctp.TrainerServices = {
 	totalServices = 0,
+	availableCost = 0,
 	visibleServices = 0,
 	showIgnored = TRAINER_FILTER_IGNORED,
 	allHeadersCollapsed = false,
@@ -64,6 +65,16 @@ ctp.TrainerServices = {
 		end
 		self._candidates = candidateSections
 	end,
+	VisibleAvailableServiceIds = function(self)
+		if (self._byPosition == nil) then return {} end
+		local ids = {}
+		for _, ability in ipairs(self._byPosition) do
+			if (ability.type == "available" and not ability.isIgnored) then
+				tinsert(ids, ability.serviceId)
+			end
+		end
+		return ids
+	end,
 	SetFilter = function(self, text)
 		local oldFilter = self._filter
 		self._filter = strlower(text)
@@ -72,6 +83,7 @@ ctp.TrainerServices = {
 	ApplyFilter = function(self)
 		self._byPosition = {}
 		self.visibleServices = 0
+		self.availableCost = 0
 		local candidateSections = self._candidates
 		local numHeaders = #candidateSections
 		local numNotExpanded = 0
@@ -86,6 +98,9 @@ ctp.TrainerServices = {
 								tinsert(self._byPosition, candidate)
 								headerInserted = true
 							end
+							if (skill.type == "available" and not skill.isIgnored) then
+								self.availableCost = self.availableCost + GetTrainerServiceCost(skill.serviceId)
+							end
 							tinsert(self._byPosition, skill)
 						end
 					end
@@ -93,6 +108,9 @@ ctp.TrainerServices = {
 					tinsert(self._byPosition, candidate)
 					for _, skill in ipairs(candidate.skills) do
 						tinsert(self._byPosition, skill)
+						if (skill.type == "available" and not skill.isIgnored) then
+							self.availableCost = self.availableCost + GetTrainerServiceCost(skill.serviceId)
+						end
 					end
 				end
 			else

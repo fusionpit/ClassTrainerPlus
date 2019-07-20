@@ -4,7 +4,8 @@ local GetLocale = GetLocale
 
 local localeText = {
     enUS = {
-        IGNORED = "Ignored"
+        IGNORED = "Ignored",
+        TRAIN_ALL = "Train All"
     }
 }
 

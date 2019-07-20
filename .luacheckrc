@@ -10,6 +10,7 @@ read_globals = {
     "UnitCharacterPoints",
     "BuyTrainerService",
     "SelectTrainerService",
+    "GetCoinTextureString",
     "GetNumTrainerServices",
     "GetTrainerServiceSkillLine",
     "GetTrainerSelectionIndex",
@@ -28,6 +29,7 @@ read_globals = {
     "SetMoneyFrameColor",
     "CloseTrainer",
     "CloseDropDownMenus",
+    "IsShiftKeyDown",
     "IsTradeskillTrainer",
     "IsTrainerServiceLearnSpell",
     "GetNumPrimaryProfessions",
@@ -89,6 +91,7 @@ read_globals = {
     "GRAY_FONT_COLOR_CODE",
     "USED",
     "TRAINER_PET_SPELL_LABEL",
+    "TRAIN"
 }
 globals = {
     -- old blizz globals

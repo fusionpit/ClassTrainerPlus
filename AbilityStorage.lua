@@ -80,7 +80,7 @@ ctp.Abilities = {
 				function(key)
 					self._spellIds[spellId] = key
 					if (ClassTrainerPlusFrame and ClassTrainerPlusFrame:IsVisible()) then
-						CTP_UpdateService()
+						ctp.TrainerServices:Update()
 						ClassTrainerPlusFrame_Update()
 					end
 				end

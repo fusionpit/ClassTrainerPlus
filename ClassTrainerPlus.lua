@@ -23,6 +23,8 @@ local GetTrainerServiceAbilityReq = GetTrainerServiceAbilityReq
 local SetTrainerServiceTypeFilter = SetTrainerServiceTypeFilter
 local GetTrainerServiceInfo = GetTrainerServiceInfo
 local GetTrainerServiceDescription = GetTrainerServiceDescription
+local GetCoinTextureString = GetCoinTextureString
+local IsShiftKeyDown = IsShiftKeyDown
 local SetPortraitTexture = SetPortraitTexture
 local SetMoneyFrameColor = SetMoneyFrameColor
 local CloseTrainer = CloseTrainer
@@ -45,6 +47,7 @@ local format = format
 local strupper = strupper
 local strlen = strlen
 local tinsert = tinsert
+local TRAIN = TRAIN
 
 CLASS_TRAINER_SKILLS_DISPLAYED = 11
 CLASS_TRAINER_SKILL_HEIGHT = 16
@@ -122,12 +125,53 @@ function ClassTrainerPlusFrame_Hide()
 	ClassTrainerPlusFrame:Hide()
 end
 
+local trainAllCostTooltip = CreateFrame("GameTooltip", "CTPTrainAllCostTooltip", UIParent, "GameTooltipTemplate")
 function ClassTrainerPlusFrame_OnLoad(self)
 	self:RegisterEvent("TRAINER_UPDATE")
 	self:RegisterEvent("TRAINER_DESCRIPTION_UPDATE")
 	self:RegisterEvent("TRAINER_SERVICE_INFO_NAME_UPDATE")
 	self:RegisterEvent("ADDON_LOADED")
 	ClassTrainerPlusDetailScrollFrame.scrollBarHideable = 1
+	local function ShowCostTooltip()
+		trainAllCostTooltip:SetOwner(ClassTrainerPlusTrainButton, "ANCHOR_RIGHT")
+		local coloredCoinString = GetCoinTextureString(ctp.TrainerServices.availableCost)
+		if (GetMoney() < ctp.TrainerServices.availableCost) then
+			coloredCoinString = RED_FONT_COLOR_CODE .. coloredCoinString .. FONT_COLOR_CODE_CLOSE
+		end
+		trainAllCostTooltip:AddLine(format("Total cost: %s", coloredCoinString))
+		trainAllCostTooltip:Show()
+	end
+	local mousedOver = false
+	ClassTrainerPlusTrainButton:SetScript(
+		"OnEnter",
+		function()
+			mousedOver = true
+		end
+	)
+	ClassTrainerPlusTrainButton:SetScript(
+		"OnLeave",
+		function()
+			mousedOver = false
+			trainAllCostTooltip:Hide()
+		end
+	)
+	self:SetScript(
+		"OnUpdate",
+		function()
+			if (IsTradeskillTrainer()) then
+				return
+			end
+			if (IsShiftKeyDown()) then
+				ClassTrainerPlusTrainButton:SetText(ctp.L.TRAIN_ALL)
+				if (mousedOver) then
+					ShowCostTooltip()
+				end
+			else
+				ClassTrainerPlusTrainButton:SetText(TRAIN)
+				trainAllCostTooltip:Hide()
+end
+		end
+	)
 end
 
 function ClassTrainerPlus_OnSearchTextChanged(self)
@@ -596,7 +640,28 @@ function ClassTrainerPlusTrainButton_OnClick()
 	if (IsTradeskillTrainer() and ClassTrainerPlusFrame.showDialog) then
 		StaticPopup_Show("CONFIRM_PROFESSION")
 	else
+		if (not IsTradeskillTrainer() and IsShiftKeyDown()) then
+			if (GetMoney() < ctp.TrainerServices.availableCost) then
+				print("ClassTrainerPlus: You don't have enough money to train everything!")
+				return
+			end
+			ClassTrainerPlusFrame:UnregisterEvent("TRAINER_UPDATE")
+			local idsToLearn = ctp.TrainerServices:VisibleAvailableServiceIds()
+			for i = #idsToLearn, 1, -1 do
+				local id = idsToLearn[i]
+				BuyTrainerService(id)
+			end
+			ClassTrainerPlusFrame:RegisterEvent("TRAINER_UPDATE")
+			print(
+				format(
+					"ClassTrainerPlus: You learned %d spells at a cost of %s",
+					#idsToLearn,
+					GetCoinTextureString(ctp.TrainerServices.availableCost)
+				)
+			)
+		else
 		BuyTrainerService(ClassTrainerPlusFrame.selectedService)
+		end
 		local nextSelection = ctp.TrainerServices:GetNextAvailableServiceId(ClassTrainerPlusFrame.selectedService)
 
 		if (nextSelection ~= nil and nextSelection <= ctp.TrainerServices.totalServices) then
