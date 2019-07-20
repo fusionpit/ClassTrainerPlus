@@ -1,6 +1,5 @@
 local _, ctp = ...
 --- KNOWN ISSUES:
--- - When scrolled down and toggling Ignored off, the display can get cut off not displaying all spells
 -- - When ignoring things at the very bottom, it will shift around weird
 
 local CreateFrame = CreateFrame
@@ -11,7 +10,7 @@ local UnitName = UnitName
 local UnitLevel = UnitLevel
 local BuyTrainerService = BuyTrainerService
 local SelectTrainerService = SelectTrainerService
-local GetTrainerServiceSkillLine= GetTrainerServiceSkillLine
+local GetTrainerServiceSkillLine = GetTrainerServiceSkillLine
 local GetTrainerSelectionIndex = GetTrainerSelectionIndex
 local GetTrainerGreetingText = GetTrainerGreetingText
 local GetTrainerServiceCost = GetTrainerServiceCost
@@ -30,11 +29,11 @@ local CloseTrainer = CloseTrainer
 local CloseDropDownMenus = CloseDropDownMenus
 local IsTradeskillTrainer = IsTradeskillTrainer
 local IsTrainerServiceLearnSpell = IsTrainerServiceLearnSpell
-local CollapseTrainerSkillLine =CollapseTrainerSkillLine
+local CollapseTrainerSkillLine = CollapseTrainerSkillLine
 local ExpandTrainerSkillLine = ExpandTrainerSkillLine
 local EasyMenu = EasyMenu
-local UpdateMicroButtons=UpdateMicroButtons
-local GetNumPrimaryProfessions= GetNumPrimaryProfessions
+local UpdateMicroButtons = UpdateMicroButtons
+local GetNumPrimaryProfessions = GetNumPrimaryProfessions
 local FauxScrollFrame_SetOffset = FauxScrollFrame_SetOffset
 local FauxScrollFrame_GetOffset = FauxScrollFrame_GetOffset
 local FauxScrollFrame_Update = FauxScrollFrame_Update
@@ -66,7 +65,7 @@ ctp.Abilities:Load(classSpellIds)
 
 local function UpdateUserFilters()
 	ctp.Abilities:Update(ClassTrainerPlusDBPC)
-	ctp.TrainerServices:Update();
+	ctp.TrainerServices:Update()
 	if (ClassTrainerPlusFrame and ClassTrainerPlusFrame:IsVisible()) then
 		ClassTrainerPlusFrame_Update()
 	end
@@ -101,7 +100,7 @@ StaticPopupDialogs["CONFIRM_PROFESSION"] = {
 }
 
 function ClassTrainerPlusFrame_Show()
-	ClassTrainerPlusFrame:Show();
+	ClassTrainerPlusFrame:Show()
 	if (not ClassTrainerPlusFrame:IsVisible()) then
 		CloseTrainer()
 		return
@@ -120,7 +119,7 @@ function ClassTrainerPlusFrame_Show()
 end
 
 function ClassTrainerPlusFrame_Hide()
-	ClassTrainerPlusFrame:Hide();
+	ClassTrainerPlusFrame:Hide()
 end
 
 function ClassTrainerPlusFrame_OnLoad(self)
@@ -134,7 +133,9 @@ end
 function ClassTrainerPlus_OnSearchTextChanged(self)
 	SearchBoxTemplate_OnTextChanged(self)
 	local filterChanged = ctp.TrainerServices:SetFilter(self:GetText())
-	if (not filterChanged) then return end
+	if (not filterChanged) then
+		return
+	end
 	ctp.TrainerServices:ApplyFilter()
 	ClassTrainerPlus_SelectFirstLearnableSkill()
 	ClassTrainerPlusFrame_Update()
@@ -219,7 +220,7 @@ function ClassTrainerPlusFrame_Update()
 	if (IsTradeskillTrainer()) then
 		ClassTrainerPlus_SetToTradeSkillTrainer()
 	else
-		ClassTrainerPlus_SetToClassTrainerPlus()
+		ClassTrainerPlus_SetToClassTrainer()
 	end
 
 	-- ScrollFrame update
@@ -318,7 +319,12 @@ function ClassTrainerPlusFrame_Update()
 				ClassTrainerPlusSkillHighlightFrame:SetPoint("TOPLEFT", "ClassTrainerPlusSkill" .. i, "TOPLEFT", 0, 0)
 				ClassTrainerPlusSkillHighlightFrame:Show()
 				skillButton:LockHighlight()
-				ClassTrainerPlus_SetSubTextColor(skillButton, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
+				ClassTrainerPlus_SetSubTextColor(
+					skillButton,
+					HIGHLIGHT_FONT_COLOR.r,
+					HIGHLIGHT_FONT_COLOR.g,
+					HIGHLIGHT_FONT_COLOR.b
+				)
 				if (moneyCost and moneyCost > 0) then
 					ClassTrainerPlusCostLabel:Show()
 				end
@@ -649,7 +655,7 @@ function ClassTrainerPlus_SetToTradeSkillTrainer()
 	ClassTrainerPlusHorizontalBarLeft:SetPoint("TOPLEFT", "ClassTrainerPlusFrame", "TOPLEFT", 15, -259)
 end
 
-function ClassTrainerPlus_SetToClassTrainerPlus()
+function ClassTrainerPlus_SetToClassTrainer()
 	CLASS_TRAINER_SKILLS_DISPLAYED = 11
 	ClassTrainerPlusListScrollFrame:SetHeight(184)
 	ClassTrainerPlusDetailScrollFrame:SetHeight(119)
@@ -743,15 +749,12 @@ local function trim(str)
 	return (string.gsub(str, "^%s*(.-)%s*$", "%1"))
 end
 
-SLASH_ClassTrainerPlus1 = "/ctp"
-SLASH_ClassTrainerPlus2 = "/ClassTrainerPlus"
+SLASH_CTP1 = "/ctp"
+SLASH_CTP2 = "/ClassTrainerPlus"
 SlashCmdList["ClassTrainerPlus"] = function(msg)
 	local _, _, cmd, args = string.find(msg, "%s?(%w+)%s?(.*)")
 	cmd = trim(string.lower(cmd))
 	args = trim(string.lower(args))
-	if (cmd == "sa") then
-		ClassTrainerPlus_ShowAll()
-	end
 	if (cmd == "import" and args == "") then
 		print("You must include the import string when importing")
 		return
