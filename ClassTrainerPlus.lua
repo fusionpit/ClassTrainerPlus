@@ -32,8 +32,6 @@ local IsTradeskillTrainer = IsTradeskillTrainer
 local IsTrainerServiceLearnSpell = IsTrainerServiceLearnSpell
 local CollapseTrainerSkillLine =CollapseTrainerSkillLine
 local ExpandTrainerSkillLine = ExpandTrainerSkillLine
-local ShowUIPanel = ShowUIPanel
-local HideUIPanel =HideUIPanel
 local EasyMenu = EasyMenu
 local UpdateMicroButtons=UpdateMicroButtons
 local GetNumPrimaryProfessions= GetNumPrimaryProfessions
@@ -103,7 +101,6 @@ StaticPopupDialogs["CONFIRM_PROFESSION"] = {
 }
 
 function ClassTrainerPlusFrame_Show()
-	--ShowUIPanel(ClassTrainerPlusFrame)
 	ClassTrainerPlusFrame:Show();
 	if (not ClassTrainerPlusFrame:IsVisible()) then
 		CloseTrainer()
@@ -123,7 +120,6 @@ function ClassTrainerPlusFrame_Show()
 end
 
 function ClassTrainerPlusFrame_Hide()
-	--HideUIPanel(ClassTrainerPlusFrame)
 	ClassTrainerPlusFrame:Hide();
 end
 
