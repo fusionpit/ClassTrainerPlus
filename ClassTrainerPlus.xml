@@ -204,6 +204,21 @@
 					<OnShow function="ClassTrainerPlusFrameFilterDropDown_OnLoad"/>
 				</Scripts>
 			</Frame>
+			<EditBox name="ClassTrainerPlusSearchBox" inherits="SearchBoxTemplate" autoFocus="false" letters="64">
+				<Size>
+					<AbsDimension x="106" y="32" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPRIGHT" relativeTo="ClassTrainerPlusFrameFilterDropDown" relativePoint="TOPLEFT">
+						<Offset>
+							<AbsDimension x="10" y="0" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnTextChanged function="ClassTrainerPlus_OnSearchTextChanged" />
+				</Scripts>
+			</EditBox>
 			<Frame name="ClassTrainerPlusSkillHighlightFrame" hidden="true">
 				<Size>
 					<AbsDimension x="293" y="16"/>

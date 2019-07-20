@@ -5,8 +5,7 @@ ctp.TrainerServices = {
 	visibleServices = 0,
 	showIgnored = TRAINER_FILTER_IGNORED,
 	allHeadersCollapsed = false,
-	Update = function(self)
-		self._byPosition = {};
+	_updateCandidates = function(self)
 		self._byServiceId = {};
 		self.showIgnored = TRAINER_FILTER_IGNORED == 1;
 		self.totalServices = GetNumTrainerServices();
@@ -41,6 +40,7 @@ ctp.TrainerServices = {
 				local ability =  {
 					serviceId = i,
 					name = serviceName,
+					lowerName = strlower(serviceName),
 					subText = serviceSubText,
 					isIgnored = isIgnored,
 					type = serviceType,
@@ -62,17 +62,38 @@ ctp.TrainerServices = {
 				end
 			end
 		end
+		self._candidates = candidateSections
+	end,
+	SetFilter = function(self, text)
+		local oldFilter = self._filter
+		self._filter = strlower(text)
+		return oldFilter ~= self._filter
+	end,
+	ApplyFilter = function(self)
+		self._byPosition = {};
 		self.visibleServices = 0;
+		local candidateSections = self._candidates
 		local numHeaders = #candidateSections;
 		local numNotExpanded = 0;
 		for _, candidate in ipairs(candidateSections) do
 			local skillsInCandidate = #candidate.skills
 			if (self.showIgnored or skillsInCandidate > 0 or not candidate.isExpanded) then
-				self.visibleServices = self.visibleServices + 1;
-				self._byPosition[self.visibleServices] = candidate;
-				for j = 1, #candidate.skills, 1 do
-					self.visibleServices = self.visibleServices + 1;
-					self._byPosition[self.visibleServices] = candidate.skills[j];
+				if (self._filter ~= nil and self._filter ~= "" and candidate.isExpanded) then
+					local headerInserted = false
+					for _, skill in ipairs(candidate.skills) do
+						if (strfind(skill.lowerName, self._filter, 1, true)) then
+							if (not headerInserted) then
+								tinsert(self._byPosition, candidate)
+								headerInserted = true
+							end
+							tinsert(self._byPosition, skill)
+						end
+					end
+				else
+					tinsert(self._byPosition, candidate)
+					for _, skill in ipairs(candidate.skills) do
+						tinsert(self._byPosition, skill)
+					end
 				end
 			else
 				candidate.isHidden = true;
@@ -81,7 +102,12 @@ ctp.TrainerServices = {
 				numNotExpanded = numNotExpanded + 1;
 			end
 		end
+		self.visibleServices = #self._byPosition
 		self.allHeadersCollapsed = numHeaders == numNotExpanded;
+	end,
+	Update = function(self)
+		self:_updateCandidates()
+		self:ApplyFilter()
 	end,
 	IsSelected = function(self, serviceId)
 		if (not serviceId or serviceId == 0) then return false; end;
@@ -114,6 +140,3 @@ ctp.TrainerServices = {
 		return self._byServiceId[id];
 	end
 };
-function CTP_UpdateService()
-	ctp.TrainerServices:Update();
-end

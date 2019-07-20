@@ -133,11 +133,16 @@ function ClassTrainerPlusFrame_OnLoad(self)
 	self:RegisterEvent("TRAINER_SERVICE_INFO_NAME_UPDATE")
 	self:RegisterEvent("ADDON_LOADED")
 	ClassTrainerPlusDetailScrollFrame.scrollBarHideable = 1
-	-- Set each skill button to handle right clicks
-	for i = 1, CLASS_TRAINER_SKILLS_DISPLAYED, 1 do
-		local skillButton = _G["ClassTrainerPlusSkill" .. i]
-		skillButton:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 	end
+
+function ClassTrainerPlus_OnSearchTextChanged(self)
+	SearchBoxTemplate_OnTextChanged(self)
+	local filterChanged = ctp.TrainerServices:SetFilter(self:GetText())
+	if (not filterChanged) then return end
+	ctp.TrainerServices:ApplyFilter()
+	-- ClassTrainerPlusListScrollFrameScrollBar:SetValue(0)
+	ClassTrainerPlus_SelectFirstLearnableSkill()
+	ClassTrainerPlusFrame_Update()
 end
 
 local function TrainerUpdateHandler()
