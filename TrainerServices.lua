@@ -1,5 +1,10 @@
 local _, ctp = ...
 
+local updateCallbacks = {}
+function HookCTPUpdate(callback)
+	tinsert(updateCallbacks, callback)
+end
+
 ctp.TrainerServices = {
 	totalServices = 0,
 	availableCost = 0,
@@ -126,6 +131,9 @@ ctp.TrainerServices = {
 	Update = function(self)
 		self:_updateCandidates()
 		self:ApplyFilter()
+		for _, func in ipairs(updateCallbacks) do
+			func(self)
+		end
 	end,
 	IsSelected = function(self, serviceId)
 		if (not serviceId or serviceId == 0) then
