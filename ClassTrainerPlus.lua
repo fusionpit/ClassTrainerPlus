@@ -131,6 +131,7 @@ function ClassTrainerPlusFrame_OnLoad(self)
 	self:RegisterEvent("TRAINER_DESCRIPTION_UPDATE")
 	self:RegisterEvent("TRAINER_SERVICE_INFO_NAME_UPDATE")
 	self:RegisterEvent("ADDON_LOADED")
+	self:RegisterEvent("TRAINER_CLOSED")
 	ClassTrainerPlusDetailScrollFrame.scrollBarHideable = 1
 	local function ShowCostTooltip()
 		trainAllCostTooltip:SetOwner(ClassTrainerPlusTrainButton, "ANCHOR_RIGHT")
@@ -236,6 +237,8 @@ function ClassTrainerPlusFrame_OnEvent(self, event, ...)
 		-- It would be really cool if I could uniquely identify the button associated
 		-- with a particular spell here, and only update the name on that button.
 		TrainerUpdateHandler()
+	elseif (event == "TRAINER_CLOSED") then
+		self:Hide()
 	end
 end
 
