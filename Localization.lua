@@ -6,6 +6,10 @@ local localeText = {
     enUS = {
         IGNORED = "Ignored",
         TRAIN_ALL = "Train All"
+    },
+    frFR = {
+        IGNORED = "Ignoré",
+        TRAIN_ALL = "Tout entrainer"
     }
 }
 
