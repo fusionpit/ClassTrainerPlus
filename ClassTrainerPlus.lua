@@ -103,7 +103,8 @@ StaticPopupDialogs["CONFIRM_PROFESSION"] = {
 }
 
 function ClassTrainerPlusFrame_Show()
-	ClassTrainerPlusFrame:Show()
+	--ClassTrainerPlusFrame:Show()
+	ShowUIPanel(ClassTrainerPlusFrame)
 	if (not ClassTrainerPlusFrame:IsVisible()) then
 		CloseTrainer()
 		return
@@ -122,7 +123,8 @@ function ClassTrainerPlusFrame_Show()
 end
 
 function ClassTrainerPlusFrame_Hide()
-	ClassTrainerPlusFrame:Hide()
+	--ClassTrainerPlusFrame:Hide()
+	HideUIPanel(ClassTrainerPlusFrame)
 end
 
 local trainAllCostTooltip = CreateFrame("GameTooltip", "CTPTrainAllCostTooltip", UIParent, "GameTooltipTemplate")
