@@ -621,7 +621,7 @@ function ClassTrainerPlusSkillButton_OnClick(self, button)
 				func = function()
 					PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
 					local ability = ctp.Abilities:GetByNameAndSubText(service.name, service.subText)
-					local spellId = ability.spellId
+					local spellId = ability and ability.spellId or 0
 					if (spellId ~= nil and spellId > 0) then
 						if (ClassTrainerPlusDBPC[spellId] == nil) then
 							ClassTrainerPlusDBPC[spellId] = checked
