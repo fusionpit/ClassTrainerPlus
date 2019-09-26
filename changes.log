@@ -1,3 +1,6 @@
+* 0.6-beta
+    - Fix overlap when a player's profession window is open
+
 * 0.5-beta
     - Added French localization (Thanks to yannlugrin on GitHub!)
 
