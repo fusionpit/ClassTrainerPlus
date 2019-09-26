@@ -530,7 +530,7 @@
 				</Anchors>
 				<Scripts>
 					<OnClick>
-						self:GetParent():Hide()
+						HideUIPanel(self:GetParent())
 					</OnClick>
 				</Scripts>
 			</Button>

@@ -59,6 +59,8 @@ TRAINER_FILTER_UNAVAILABLE = 1
 TRAINER_FILTER_USED = 0
 TRAINER_FILTER_IGNORED = 1
 
+UIPanelWindows["ClassTrainerPlusFrame"] = UIPanelWindows["ClassTrainerFrame"]
+
 ClassTrainerPlusDBPC = {}
 
 local _, englishClass = UnitClass("player")
@@ -103,7 +105,6 @@ StaticPopupDialogs["CONFIRM_PROFESSION"] = {
 }
 
 function ClassTrainerPlusFrame_Show()
-	--ClassTrainerPlusFrame:Show()
 	ShowUIPanel(ClassTrainerPlusFrame)
 	if (not ClassTrainerPlusFrame:IsVisible()) then
 		CloseTrainer()
@@ -123,7 +124,6 @@ function ClassTrainerPlusFrame_Show()
 end
 
 function ClassTrainerPlusFrame_Hide()
-	--ClassTrainerPlusFrame:Hide()
 	HideUIPanel(ClassTrainerPlusFrame)
 end
 
@@ -172,7 +172,7 @@ function ClassTrainerPlusFrame_OnLoad(self)
 			else
 				ClassTrainerPlusTrainButton:SetText(TRAIN)
 				trainAllCostTooltip:Hide()
-end
+			end
 		end
 	)
 end
@@ -240,7 +240,7 @@ function ClassTrainerPlusFrame_OnEvent(self, event, ...)
 		-- with a particular spell here, and only update the name on that button.
 		TrainerUpdateHandler()
 	elseif (event == "TRAINER_CLOSED") then
-		self:Hide()
+		ClassTrainerPlusFrame_Hide()
 	end
 end
 
@@ -665,7 +665,7 @@ function ClassTrainerPlusTrainButton_OnClick()
 				)
 			)
 		else
-		BuyTrainerService(ClassTrainerPlusFrame.selectedService)
+			BuyTrainerService(ClassTrainerPlusFrame.selectedService)
 		end
 		local nextSelection = ctp.TrainerServices:GetNextAvailableServiceId(ClassTrainerPlusFrame.selectedService)
 
@@ -814,7 +814,6 @@ function ClassTrainerPlusFrameFilterDropDown_OnClick(self)
 	else
 		SetTrainerServiceTypeFilter(self.value, newFilterValue)
 	end
-
 end
 
 local function trim(str)
