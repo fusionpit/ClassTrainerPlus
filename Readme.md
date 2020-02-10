@@ -1,5 +1,5 @@
 # Class Trainer Plus
-Class Trainer Plus is an addon for World of Warcraft Classic that upgrades the Class Trainer interface, adding the abiliy to ignore, search, and train all.
+Class Trainer Plus is an addon for World of Warcraft Classic that upgrades the Class Trainer interface, adding the ability to ignore, search, and train all.
 
 ![An overview of the features of the addon, including searching and additional filtering options](https://i.imgur.com/Yy9ZDBh.png "Overview")
 
