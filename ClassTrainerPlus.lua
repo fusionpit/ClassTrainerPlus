@@ -822,7 +822,7 @@ end
 
 SLASH_CTP1 = "/ctp"
 SLASH_CTP2 = "/ClassTrainerPlus"
-SlashCmdList["ClassTrainerPlus"] = function(msg)
+SlashCmdList["CTP"] = function(msg)
 	local _, _, cmd, args = string.find(msg, "%s?(%w+)%s?(.*)")
 	cmd = trim(string.lower(cmd))
 	args = trim(string.lower(args))
