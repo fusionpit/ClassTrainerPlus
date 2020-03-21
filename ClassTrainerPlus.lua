@@ -318,6 +318,7 @@ function ClassTrainerPlusFrame_Update()
 			if (serviceType == "header") then
 				local skillText = _G["ClassTrainerPlusSkill" .. i .. "Text"]
 				skillText:SetText(serviceName)
+				skillText:SetWidth(0)
 				skillButton:SetNormalFontObject("GameFontNormal")
 
 				skillSubText:Hide()
@@ -334,10 +335,13 @@ function ClassTrainerPlusFrame_Update()
 				skillText:SetText("  " .. serviceName)
 				if (serviceSubText and serviceSubText ~= "") then
 					skillSubText:SetText(format(PARENS_TEMPLATE, serviceSubText))
+					skillText:SetWidth(0)
 					skillSubText:SetPoint("LEFT", "ClassTrainerPlusSkill" .. i .. "Text", "RIGHT", 10, 0)
 					skillSubText:Show()
 				else
 					skillSubText:Hide()
+					-- A bit of a hack. If there's no subtext, we'll set a width to ensure that we don't overflow.
+					skillText:SetWidth(SKILL_TEXT_WIDTH)
 				end
 
 				-- Cost Stuff
