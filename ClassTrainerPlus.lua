@@ -433,6 +433,10 @@ function ClassTrainerPlus_SetSelection(id)
 	local showIgnored = TRAINER_FILTER_IGNORED == 1
 	local serviceName, serviceSubText, serviceType, isExpanded
 	local service = ctp.TrainerServices:GetService(id)
+	if (service == nil) then
+		print("ClassTrainerPlus: Could not retrieve the correct service.  If the trainer window is blank, close and reopen it.  If the window is still blank, disable ClassTrainerPlus and report the issue to the author.")
+		return;
+	end
 	serviceName = service.name
 	serviceSubText = service.subText
 	serviceType = service.type
