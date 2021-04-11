@@ -4,15 +4,15 @@ local spellsToStripSubtextFrom = {
 	[3127] = true, -- Parry, which is flagged Passive by GetSpellSubtext but not by GetTrainerServiceInfo
 	[674] = true, -- Dual Wield, same as Parry
 	[2836] = true, -- Detect Traps, passive
-	[20608] = true -- Reincarnation, passive
+	[20608] = true, -- Reincarnation, passive
 }
 local spellsToAllowRanklessMatch = {
 	[921] = true, -- Pick Pocket, has Rank 1 in trainer ui, no rank from spell info
-	[29166] = true -- Innervate, has Rank 1 in trainer ui, no rank from spell info
+	[29166] = true, -- Innervate, has Rank 1 in trainer ui, no rank from spell info
 }
-
 ctp.RealSpellNameMap = {}
 ctp.Abilities = {
+	_byNameStore = {},
 	_store = {},
 	_spellIds = {},
 	_partialMatchSpells = {},
@@ -44,6 +44,15 @@ ctp.Abilities = {
 					spellId = spellId,
 					isIgnored = isIgnored
 				}
+
+				-- when the spell has multiple ranks, add its id to the by name store
+				if (string.match(subText, RANK)) then
+					if (self._byNameStore[spellName] == nil) then
+						self._byNameStore[spellName] = {}
+					end
+					tinsert(self._byNameStore[spellName], spellId)
+				end
+
 				if (postStoreFunc ~= nil) then
 					postStoreFunc(key)
 				end
@@ -62,6 +71,9 @@ ctp.Abilities = {
 			key = self._getKey(ctp.RealSpellNameMap[serviceName][serviceSubText], serviceSubText)
 		end
 		return self._store[key]
+	end,
+	GetAllIdsByName = function(self, serviceName)
+		return self._byNameStore[serviceName]
 	end,
 	IsIgnored = function(self, serviceName, serviceSubText)
 		local ability = self:GetByNameAndSubText(serviceName, serviceSubText)

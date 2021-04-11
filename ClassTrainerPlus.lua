@@ -600,6 +600,7 @@ function ClassTrainerPlus_SetSelection(id)
 	end
 end
 
+local menuFrame = CreateFrame("Frame", "ClassTrainerPlusToggleFrame", UIParent, "UIDropDownMenuTemplate")
 function ClassTrainerPlusSkillButton_OnClick(self, button)
 	if (ClassTrainerPlusToggleFrame ~= nil and ClassTrainerPlusToggleFrame:IsVisible()) then
 		CloseDropDownMenus()
@@ -642,10 +643,33 @@ function ClassTrainerPlusSkillButton_OnClick(self, button)
 					UpdateUserFilters()
 					TrainerUpdateHandler()
 				end,
-				classicChecks = true
+				isNotRadio = true
+				-- classicChecks = true
 			}
 		}
-		local menuFrame = CreateFrame("Frame", "ClassTrainerPlusToggleFrame", UIParent, "UIDropDownMenuTemplate")
+		local spellIds = ctp.Abilities:GetAllIdsByName(service.name)
+		if (spellIds ~= nil) then
+			local allIgnored = true
+			for _, id in ipairs(spellIds) do
+				allIgnored = allIgnored and ClassTrainerPlusDBPC[id]
+			end
+			tinsert(menu, {
+				text = ctp.L["IGNOREALLRANKS"],
+				checked = allIgnored,
+				func = function()
+					PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
+					for _, id in ipairs(spellIds) do
+						ClassTrainerPlusDBPC[id] = not allIgnored
+					end
+
+					UpdateUserFilters()
+					TrainerUpdateHandler()
+				end,
+				isNotRadio = true
+				-- classicChecks = true
+			})
+		end
+
 		EasyMenu(menu, menuFrame, "cursor", 10, 35, "MENU")
 	end
 end

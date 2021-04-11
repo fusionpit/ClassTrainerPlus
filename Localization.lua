@@ -5,7 +5,8 @@ local GetLocale = GetLocale
 local localeText = {
     enUS = {
         IGNORED = "Ignored",
-        TRAIN_ALL = "Train All"
+        TRAIN_ALL = "Train All",
+        IGNOREALLRANKS = "Ignore all ranks"
     },
     frFR = {
         IGNORED = "Ignoré",
