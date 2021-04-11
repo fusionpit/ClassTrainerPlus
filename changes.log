@@ -1,3 +1,7 @@
+* 0.8-beta
+    - You can now ignore all ranks of a spell at once
+    - Fix druid Track Humanoid
+
 * 0.7-beta
     - Fix spell ranks flowing over the right edge of the window
     - Fix error where GetTrainerServiceInfo does not supply service info after a trainer update
