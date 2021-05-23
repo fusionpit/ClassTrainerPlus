@@ -128,7 +128,9 @@ ctp.Abilities = {
 	end,
 	Update = function(self, table)
 		for spellId, isIgnored in pairs(table) do
-			self:_storeSpellInfo(spellId, isIgnored)
+			if (C_Spell.DoesSpellExist(spellId)) then
+				self:_storeSpellInfo(spellId, isIgnored)
+			end
 		end
 	end
 }
