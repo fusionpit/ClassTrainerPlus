@@ -1,0 +1,25 @@
+## Interface: 20501
+## Title: Class Trainer Plus
+## Version: @project-version@
+## Author: Sveng
+## Notes: Lets you hide abilities from class trainers that you don't care about
+## SavedVariables: TRAINER_FILTER_AVAILABLE, TRAINER_FILTER_UNAVAILABLE, TRAINER_FILTER_USED
+## SavedVariablesPerCharacter: TRAINER_FILTER_IGNORED, ClassTrainerPlusDBPC
+## X-Curse-Project-ID: 324903
+## X-WoWI-ID: 25029
+
+Classes\TBC\Druid.lua
+Classes\TBC\Hunter.lua
+Classes\TBC\Mage.lua
+Classes\TBC\Paladin.lua
+Classes\TBC\Priest.lua
+Classes\TBC\Rogue.lua
+Classes\TBC\Shaman.lua
+Classes\TBC\Warlock.lua
+Classes\TBC\Warrior.lua
+
+Localization.lua
+AbilityStorage.lua
+TrainerServices.lua
+ClassTrainerPlus.xml
+Loader.lua
