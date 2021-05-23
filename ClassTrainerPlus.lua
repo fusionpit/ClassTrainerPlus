@@ -344,6 +344,7 @@ function ClassTrainerPlusFrame_Update()
 					-- A bit of a hack. If there's no subtext, we'll set a width to ensure that we don't overflow.
 					skillText:SetWidth(SKILL_TEXT_WIDTH)
 				end
+				skillText:SetJustifyH('LEFT')
 
 				-- Cost Stuff
 				moneyCost, _ = GetTrainerServiceCost(skillIndex)
