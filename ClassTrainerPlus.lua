@@ -623,6 +623,8 @@ function ClassTrainerPlusSkillButton_OnClick(self, button)
 		if (service.isIgnored) then
 			checked = true
 		end
+		local ability = ctp.Abilities:GetByNameAndSubText(service.name, service.subText)
+		local spellId = ability and ability.spellId or 0
 		local menu = {
 			{text = menuTitle, isTitle = true, classicChecks = true},
 			{
@@ -630,8 +632,6 @@ function ClassTrainerPlusSkillButton_OnClick(self, button)
 				checked = checked,
 				func = function()
 					PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
-					local ability = ctp.Abilities:GetByNameAndSubText(service.name, service.subText)
-					local spellId = ability and ability.spellId or 0
 					if (spellId ~= nil and spellId > 0) then
 						if (ClassTrainerPlusDBPC[spellId] == nil) then
 							ClassTrainerPlusDBPC[spellId] = checked
@@ -647,27 +647,29 @@ function ClassTrainerPlusSkillButton_OnClick(self, button)
 				-- classicChecks = true
 			}
 		}
-		local spellIds = ctp.Abilities:GetAllIdsByName(service.name)
-		if (spellIds ~= nil) then
-			local allIgnored = true
-			for _, id in ipairs(spellIds) do
-				allIgnored = allIgnored and ClassTrainerPlusDBPC[id]
-			end
-			tinsert(menu, {
-				text = ctp.L["IGNOREALLRANKS"],
-				checked = allIgnored,
-				func = function()
-					PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
-					for _, id in ipairs(spellIds) do
-						ClassTrainerPlusDBPC[id] = not allIgnored
-					end
+		if (ctp.SpellsToIgnoreAllRanksOn == nil or not ctp.SpellsToIgnoreAllRanksOn[spellId]) then
+			local spellIds = ctp.Abilities:GetAllIdsByName(service.name)
+			if (spellIds ~= nil) then
+				local allIgnored = true
+				for _, id in ipairs(spellIds) do
+					allIgnored = allIgnored and ClassTrainerPlusDBPC[id]
+				end
+				tinsert(menu, {
+					text = ctp.L["IGNOREALLRANKS"],
+					checked = allIgnored,
+					func = function()
+						PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
+						for _, id in ipairs(spellIds) do
+							ClassTrainerPlusDBPC[id] = not allIgnored
+						end
 
-					UpdateUserFilters()
-					TrainerUpdateHandler()
-				end,
-				isNotRadio = true
-				-- classicChecks = true
-			})
+						UpdateUserFilters()
+						TrainerUpdateHandler()
+					end,
+					isNotRadio = true
+					-- classicChecks = true
+				})
+			end
 		end
 
 		EasyMenu(menu, menuFrame, "cursor", 10, 35, "MENU")

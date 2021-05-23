@@ -32,14 +32,16 @@ ctp.TrainerServices = {
 				self._byServiceId[i] = currentSection
 				tinsert(candidateSections, currentSection)
 			else
-				if (ctp.RealSpellNameMap[serviceName] == nil) then
-					ctp.RealSpellNameMap[serviceName] = {}
+				if (ctp.TooltipNameMap[serviceName] == nil) then
+					ctp.TooltipNameMap[serviceName] = {}
 				end
-				if (serviceSubText and ctp.RealSpellNameMap[serviceName][serviceSubText] == nil and not IsTradeskillTrainer()) then
+				if (serviceSubText and
+						ctp.TooltipNameMap[serviceName][serviceSubText] == nil
+						and not IsTradeskillTrainer()) then
 					GameTooltip:SetTrainerService(i)
 					local tooltipName = GameTooltipTextLeft1:GetText()
 					if (tooltipName and string.find(tooltipName, serviceName, 1, true)) then
-						ctp.RealSpellNameMap[serviceName][serviceSubText] = tooltipName
+						ctp.TooltipNameMap[serviceName][serviceSubText] = tooltipName
 					end
 				end
 				local isIgnored = ctp.Abilities:IsIgnored(serviceName, serviceSubText)

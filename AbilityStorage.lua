@@ -18,7 +18,8 @@ local subtextSubstutiteSpells = {}
 for spellId,subtextFromSpellId in pairs(spellsToSubstituteSubtextFor) do
 	subtextSubstutiteSpells[spellId] = Spell:CreateFromSpellID(subtextFromSpellId)
 end
-ctp.RealSpellNameMap = {}
+local spellKeysToSkipTooltipNameOn = {}
+ctp.TooltipNameMap = {}
 ctp.Abilities = {
 	_byNameStore = {},
 	_store = {},
@@ -49,6 +50,9 @@ ctp.Abilities = {
 				end
 				local function store(subText)
 					local key = self._getKey(spellName, subText)
+					if (ctp.SpellsToIgnoreTooltipNameFor and ctp.SpellsToIgnoreTooltipNameFor[spellId]) then
+						spellKeysToSkipTooltipNameOn[key] = true
+					end
 					self._store[key] = {
 						spellId = spellId,
 						isIgnored = isIgnored
@@ -78,14 +82,18 @@ ctp.Abilities = {
 	end,
 	GetByNameAndSubText = function(self, serviceName, serviceSubText)
 		local key = self._getKey(serviceName, serviceSubText)
+		if (spellKeysToSkipTooltipNameOn[key]) then
+			return self._store[key]
+		end
 		if (self._store[key] == nil) then
 			key = self._getAlternateKey(serviceName)
 			if (self._store[key] ~= nil) then
 				return self._store[key]
 			end
 		end
-		if (ctp.RealSpellNameMap[serviceName] and ctp.RealSpellNameMap[serviceName][serviceSubText]) then
-			key = self._getKey(ctp.RealSpellNameMap[serviceName][serviceSubText], serviceSubText)
+		if (ctp.TooltipNameMap[serviceName]) then
+			local realSpellName = ctp.TooltipNameMap[serviceName][serviceSubText] or ctp.TooltipNameMap[serviceName]
+			key = self._getKey(realSpellName, serviceSubText)
 		end
 		return self._store[key]
 	end,
