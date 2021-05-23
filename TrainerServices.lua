@@ -60,7 +60,7 @@ ctp.TrainerServices = {
 					ability.menuTitle = serviceName
 				end
 				self._byServiceId[i] = ability
-				if (not isIgnored or self.showIgnored) then
+				if (not isIgnored or self.showIgnored or serviceType == 'used') then
 					tinsert(currentSection.skills, ability)
 				end
 				if (isIgnored and serviceType ~= "used") then

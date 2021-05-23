@@ -92,8 +92,10 @@ ctp.Abilities = {
 			end
 		end
 		if (ctp.TooltipNameMap[serviceName]) then
-			local realSpellName = ctp.TooltipNameMap[serviceName][serviceSubText] or ctp.TooltipNameMap[serviceName]
-			key = self._getKey(realSpellName, serviceSubText)
+			local realSpellName = ctp.TooltipNameMap[serviceName][serviceSubText]
+			if (realSpellName) then
+				key = self._getKey(realSpellName, serviceSubText)
+			end
 		end
 		return self._store[key]
 	end,
