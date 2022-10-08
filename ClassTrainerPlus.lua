@@ -66,6 +66,10 @@ ClassTrainerPlusDBPC = {}
 
 local _, englishClass = UnitClass("player")
 englishClass = string.gsub(string.lower(englishClass), "^%l", string.upper)
+if englishClass == 'Deathknight' then
+	englishClass = 'DeathKnight'
+end
+
 local classSpellIds = _G[format("ClassTrainerPlus%sSpellIds", englishClass)]
 ctp.Abilities:Load(classSpellIds)
 
