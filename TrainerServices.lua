@@ -1,9 +1,5 @@
 local _, ctp = ...
-
-local updateCallbacks = {}
-function HookCTPUpdate(callback)
-	tinsert(updateCallbacks, callback)
-end
+local ignoreStore = LibStub:GetLibrary("FusionIgnoreStore-1.0")
 
 ctp.TrainerServices = {
 	totalServices = 0,
@@ -44,7 +40,8 @@ ctp.TrainerServices = {
 						ctp.TooltipNameMap[serviceName][serviceSubText] = tooltipName
 					end
 				end
-				local isIgnored = ctp.Abilities:IsIgnored(serviceName, serviceSubText)
+				local ai = ctp.Abilities:GetByNameAndSubText(serviceName, serviceSubText)
+				local isIgnored = ai and ignoreStore:IsIgnored(ai.spellId) or false
 				local ability = {
 					serviceId = i,
 					name = serviceName,
@@ -133,9 +130,6 @@ ctp.TrainerServices = {
 	Update = function(self)
 		self:_updateCandidates()
 		self:ApplyFilter()
-		for _, func in ipairs(updateCallbacks) do
-			func(self)
-		end
 	end,
 	IsSelected = function(self, serviceId)
 		if (not serviceId or serviceId == 0) then

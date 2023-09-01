@@ -550,7 +550,7 @@
 				tinsert(UISpecialFrames, self:GetName());
 			</OnLoad>
 			<OnShow>
-				PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN);
+				<!-- PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN); -->
 				SetTrainerServiceTypeFilter("available", TRAINER_FILTER_AVAILABLE);
 				SetTrainerServiceTypeFilter("unavailable", TRAINER_FILTER_UNAVAILABLE);
 				SetTrainerServiceTypeFilter("used", TRAINER_FILTER_USED);

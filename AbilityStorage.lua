@@ -1,4 +1,5 @@
 local _, ctp = ...
+-- local ignoreStore = LibStub:GetLibrary("FusionIgnoreStore-1.0")
 
 local spellsToStripSubtextFrom = {
 	[3127] = true, -- Parry, which is flagged Passive by GetSpellSubtext but not by GetTrainerServiceInfo
@@ -36,7 +37,7 @@ ctp.Abilities = {
 		return serviceName .. " *"
 	end,
 	-- postStoreFunc gets key as input
-	_storeSpellInfo = function(self, spellId, isIgnored, postStoreFunc)
+	_storeSpellInfo = function(self, spellId, postStoreFunc)
 		local spell = Spell:CreateFromSpellID(spellId)
 		spell:ContinueOnSpellLoad(
 			function()
@@ -54,8 +55,7 @@ ctp.Abilities = {
 						spellKeysToSkipTooltipNameOn[key] = true
 					end
 					self._store[key] = {
-						spellId = spellId,
-						isIgnored = isIgnored
+						spellId = spellId
 					}
 					-- when the spell has multiple ranks, add its id to the by name store
 					if (string.match(subText, RANK)) then
@@ -102,10 +102,6 @@ ctp.Abilities = {
 	GetAllIdsByName = function(self, serviceName)
 		return self._byNameStore[serviceName]
 	end,
-	IsIgnored = function(self, serviceName, serviceSubText)
-		local ability = self:GetByNameAndSubText(serviceName, serviceSubText)
-		return ability ~= nil and ability.isIgnored
-	end,
 	IsSpellIdStored = function(self, spellId)
 		return self._spellIds[spellId] ~= nil
 	end,
@@ -115,7 +111,6 @@ ctp.Abilities = {
 		for _, spellId in pairs(table) do
 			self:_storeSpellInfo(
 				spellId,
-				false,
 				function(key)
 					self._spellIds[spellId] = key
 					if (ClassTrainerPlusFrame and ClassTrainerPlusFrame:IsVisible()) then
@@ -124,13 +119,6 @@ ctp.Abilities = {
 					end
 				end
 			)
-		end
-	end,
-	Update = function(self, table)
-		for spellId, isIgnored in pairs(table) do
-			if (C_Spell.DoesSpellExist(spellId)) then
-				self:_storeSpellInfo(spellId, isIgnored)
-			end
 		end
 	end
 }

@@ -1,4 +1,5 @@
 local _, ctp = ...
+local ignoreStore = LibStub:GetLibrary("FusionIgnoreStore-1.0")
 --- KNOWN ISSUES:
 -- - When ignoring things at the very bottom, it will shift around weird
 
@@ -62,8 +63,6 @@ TRAINER_FILTER_IGNORED = 1
 
 UIPanelWindows["ClassTrainerPlusFrame"] = UIPanelWindows["ClassTrainerFrame"]
 
-ClassTrainerPlusDBPC = {}
-
 local _, englishClass = UnitClass("player")
 englishClass = string.gsub(string.lower(englishClass), "^%l", string.upper)
 if englishClass == 'Deathknight' then
@@ -74,48 +73,21 @@ local classSpellIds = _G[format("ClassTrainerPlus%sSpellIds", englishClass)]
 ctp.Abilities:Load(classSpellIds)
 
 local function UpdateUserFilters()
-	ctp.Abilities:Update(ClassTrainerPlusDBPC)
 	ctp.TrainerServices:Update()
 	if (ClassTrainerPlusFrame and ClassTrainerPlusFrame:IsVisible()) then
 		ClassTrainerPlusFrame_Update()
 	end
 end
 
-StaticPopupDialogs["CONFIRM_PROFESSION"] = {
-	preferredIndex = 3,
-	text = format(PROFESSION_CONFIRMATION1, "XXX"),
-	button1 = ACCEPT,
-	button2 = CANCEL,
-	OnAccept = function()
-		BuyTrainerService(ClassTrainerPlusFrame.selectedService)
-		ClassTrainerPlusFrame.showSkillDetails = nil
-		ClassTrainerPlus_SetSelection(ClassTrainerPlusFrame.selectedService)
-		ClassTrainerPlusFrame_Update()
-	end,
-	OnShow = function(self)
-		local profCount = GetNumPrimaryProfessions()
-		if (profCount == 0) then
-			_G[self:GetName() .. "Text"]:SetText(
-				format(PROFESSION_CONFIRMATION1, GetTrainerServiceSkillLine(ClassTrainerPlusFrame.selectedService))
-			)
-		else
-			_G[self:GetName() .. "Text"]:SetText(
-				format(PROFESSION_CONFIRMATION2, GetTrainerServiceSkillLine(ClassTrainerPlusFrame.selectedService))
-			)
-		end
-	end,
-	showAlert = 1,
-	timeout = 0,
-	hideOnEscape = 1
-}
 
 function ClassTrainerPlusFrame_Show()
-	ShowUIPanel(ClassTrainerPlusFrame)
-	if (not ClassTrainerPlusFrame:IsVisible()) then
+	-- ShowUIPanel(ClassTrainerPlusFrame)
+	ClassTrainerPlusFrame:Show()
+	if (not ClassTrainerFrame:IsVisible()) then
 		CloseTrainer()
 		return
 	end
-
+	UpdateUserFilters()
 	ClassTrainerPlusTrainButton:Disable()
 	--Reset scrollbar
 	ClassTrainerPlusListScrollFrameScrollBar:SetMinMaxValues(0, 0)
@@ -129,7 +101,8 @@ function ClassTrainerPlusFrame_Show()
 end
 
 function ClassTrainerPlusFrame_Hide()
-	HideUIPanel(ClassTrainerPlusFrame)
+	-- HideUIPanel(ClassTrainerPlusFrame)
+	ClassTrainerPlusFrame:Hide()
 end
 
 local trainAllCostTooltip = CreateFrame("GameTooltip", "CTPTrainAllCostTooltip", UIParent, "GameTooltipTemplate")
@@ -166,9 +139,6 @@ function ClassTrainerPlusFrame_OnLoad(self)
 	self:SetScript(
 		"OnUpdate",
 		function()
-			if (IsTradeskillTrainer()) then
-				return
-			end
 			if (IsShiftKeyDown()) then
 				ClassTrainerPlusTrainButton:SetText(ctp.L.TRAIN_ALL)
 				if (mousedOver) then
@@ -231,7 +201,11 @@ function ClassTrainerPlusFrame_OnEvent(self, event, ...)
 		SetTrainerServiceTypeFilter("unavailable", TRAINER_FILTER_UNAVAILABLE)
 		SetTrainerServiceTypeFilter("used", TRAINER_FILTER_USED)
 		ClassTrainerPlusDBPC = ClassTrainerPlusDBPC or {}
+		ignoreStore:LoadIfNotAlready()
+		ignoreStore:MaybeMigrate(ClassTrainerPlusDBPC)
+		ignoreStore:AddSubscription(UpdateUserFilters)
 		UpdateUserFilters()
+		self:UnregisterEvent("ADDON_LOADED")
 	end
 	if (not self:IsVisible()) then
 		return
@@ -334,7 +308,7 @@ function ClassTrainerPlusFrame_Update()
 				end
 				_G["ClassTrainerPlusSkill" .. i .. "Highlight"]:SetTexture("Interface\\Buttons\\UI-PlusButton-Hilight")
 			else
-				skillButton:SetNormalTexture("")
+				skillButton:ClearNormalTexture()
 				_G["ClassTrainerPlusSkill" .. i .. "Highlight"]:SetTexture("")
 				local skillText = _G["ClassTrainerPlusSkill" .. i .. "Text"]
 				skillText:SetText("  " .. serviceName)
@@ -617,7 +591,7 @@ function ClassTrainerPlusSkillButton_OnClick(self, button)
 		ClassTrainerPlusFrame.showSkillDetails = 1
 		ClassTrainerPlus_SetSelection(self:GetID())
 		ClassTrainerPlusFrame_Update()
-	elseif (button == "RightButton" and not IsTradeskillTrainer()) then
+	elseif (button == "RightButton") then
 		local service = ctp.TrainerServices:GetService(self:GetID())
 		if (service.type == "header" or service.type == "used") then
 			return
@@ -638,14 +612,11 @@ function ClassTrainerPlusSkillButton_OnClick(self, button)
 				func = function()
 					PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
 					if (spellId ~= nil and spellId > 0) then
-						if (ClassTrainerPlusDBPC[spellId] == nil) then
-							ClassTrainerPlusDBPC[spellId] = checked
-						end
-						ClassTrainerPlusDBPC[spellId] = not ClassTrainerPlusDBPC[spellId]
+						ignoreStore:Flip(spellId)
 					else
 						print(format("ClassTrainerPlus: could not find spell for %s", service.name))
 					end
-					UpdateUserFilters()
+					-- UpdateUserFilters()
 					TrainerUpdateHandler()
 				end,
 				isNotRadio = true
@@ -657,18 +628,14 @@ function ClassTrainerPlusSkillButton_OnClick(self, button)
 			if (spellIds ~= nil) then
 				local allIgnored = true
 				for _, id in ipairs(spellIds) do
-					allIgnored = allIgnored and ClassTrainerPlusDBPC[id]
+					allIgnored = allIgnored and ignoreStore:IsIgnored(id)
 				end
 				tinsert(menu, {
 					text = ctp.L["IGNOREALLRANKS"],
 					checked = allIgnored,
 					func = function()
 						PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
-						for _, id in ipairs(spellIds) do
-							ClassTrainerPlusDBPC[id] = not allIgnored
-						end
-
-						UpdateUserFilters()
+						ignoreStore:UpdateMany(spellIds, not allIgnored)
 						TrainerUpdateHandler()
 					end,
 					isNotRadio = true
@@ -889,14 +856,7 @@ SlashCmdList["CTP"] = function(msg)
 			end
 			tinsert(import, spellId)
 		end
-		local newImports = 0
-		for _, v in ipairs(import) do
-			if (ClassTrainerPlusDBPC[v] ~= true) then
-				ClassTrainerPlusDBPC[v] = true
-				newImports = newImports + 1
-			end
-		end
-		UpdateUserFilters()
+		local newImports = ignoreStore:Import(import)
 		TrainerUpdateHandler()
 		print(
 			format(
@@ -906,7 +866,7 @@ SlashCmdList["CTP"] = function(msg)
 			)
 		)
 	elseif (cmd == "clear") then
-		ClassTrainerPlusDBPC = {}
+		ignoreStore:Clear()
 		ctp.Abilities:Load(classSpellIds)
 		TrainerUpdateHandler()
 		print("ClassTrainerPlus database cleared")

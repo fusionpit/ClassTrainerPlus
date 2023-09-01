@@ -1,3 +1,7 @@
+*1.0.0
+    - Ignored spells shared with What's Training? and can be ignored from either addon
+    - Fix WotLK Ulduar / Classic Era Hardcore patches breaking loading of addon
+
 *0.10.0-beta
     - WotLK Support
 
