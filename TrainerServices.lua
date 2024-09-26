@@ -9,7 +9,7 @@ ctp.TrainerServices = {
 	allHeadersCollapsed = false,
 	_updateCandidates = function(self)
 		self._byServiceId = {}
-		self.showIgnored = TRAINER_FILTER_IGNORED == 1
+		self.showIgnored = TRAINER_FILTER_IGNORED == true
 		self.totalServices = GetNumTrainerServices()
 		local currentSection = nil
 		local candidateSections = {}
