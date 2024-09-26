@@ -604,47 +604,35 @@ function ClassTrainerPlusSkillButton_OnClick(self, button)
 		end
 		local ability = ctp.Abilities:GetByNameAndSubText(service.name, service.subText)
 		local spellId = ability and ability.spellId or 0
-		local menu = {
-			{text = menuTitle, isTitle = true, classicChecks = true},
-			{
-				text = ctp.L["IGNORED"],
-				checked = checked,
-				func = function()
-					PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
-					if (spellId ~= nil and spellId > 0) then
-						ignoreStore:Flip(spellId)
-					else
-						print(format("ClassTrainerPlus: could not find spell for %s", service.name))
-					end
-					-- UpdateUserFilters()
-					TrainerUpdateHandler()
-				end,
-				isNotRadio = true
-				-- classicChecks = true
-			}
-		}
-		if (ctp.SpellsToIgnoreAllRanksOn == nil or not ctp.SpellsToIgnoreAllRanksOn[spellId]) then
-			local spellIds = ctp.Abilities:GetAllIdsByName(service.name)
-			if (spellIds ~= nil) then
-				local allIgnored = true
-				for _, id in ipairs(spellIds) do
-					allIgnored = allIgnored and ignoreStore:IsIgnored(id)
+		MenuUtil.CreateContextMenu(self, function(owner, rootDescription)
+			rootDescription:CreateTitle(menuTitle)
+			rootDescription:CreateCheckbox(ctp.L["IGNORED"], function() return checked end, function()
+				PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
+				if (spellId ~= nil and spellId > 0) then
+					ignoreStore:Flip(spellId)
+				else
+					print(format("ClassTrainerPlus: could not find spell for %s", service.name))
 				end
-				tinsert(menu, {
-					text = ctp.L["IGNOREALLRANKS"],
-					checked = allIgnored,
-					func = function()
+				-- UpdateUserFilters()
+				TrainerUpdateHandler()
+				return MenuResponse.Close
+			end)
+			if (ctp.SpellsToIgnoreAllRanksOn == nil or not ctp.SpellsToIgnoreAllRanksOn[spellId]) then
+				local spellIds = ctp.Abilities:GetAllIdsByName(service.name)
+				if (spellIds ~= nil) then
+					local allIgnored = true
+					for _, id in ipairs(spellIds) do
+						allIgnored = allIgnored and ignoreStore:IsIgnored(id)
+					end
+					rootDescription:CreateCheckbox(ctp.L["IGNOREALLRANKS"], function() return allIgnored end, function() 
 						PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
 						ignoreStore:UpdateMany(spellIds, not allIgnored)
 						TrainerUpdateHandler()
-					end,
-					isNotRadio = true
-					-- classicChecks = true
-				})
+						return MenuResponse.Close
+					end)
+				end
 			end
-		end
-
-		EasyMenu(menu, menuFrame, "cursor", 10, 35, "MENU")
+		end)
 	end
 end
 
