@@ -58,7 +58,7 @@ ctp.Abilities = {
 						spellId = spellId
 					}
 					-- when the spell has multiple ranks, add its id to the by name store
-					if (string.match(subText, RANK)) then
+					if (string.match(subText or '', RANK)) then
 						if (self._byNameStore[spellName] == nil) then
 							self._byNameStore[spellName] = {}
 						end
