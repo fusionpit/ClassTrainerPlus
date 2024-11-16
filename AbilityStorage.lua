@@ -1,5 +1,4 @@
 local _, ctp = ...
--- local ignoreStore = LibStub:GetLibrary("FusionIgnoreStore-1.0")
 
 local spellsToStripSubtextFrom = {
 	[3127] = true, -- Parry, which is flagged Passive by GetSpellSubtext but not by GetTrainerServiceInfo
@@ -41,42 +40,46 @@ ctp.Abilities = {
 		local spell = Spell:CreateFromSpellID(spellId)
 		spell:ContinueOnSpellLoad(
 			function()
-				local spellName = spell:GetSpellName()
-				local subText = spell:GetSpellSubtext()
-				if (spellsToStripSubtextFrom[spellId]) then
-					subText = ""
-				end
-				if (spellsToAllowRanklessMatch[spellId]) then
-					subText = "*"
-				end
-				local function store(subText)
-					local key = self._getKey(spellName, subText)
-					if (ctp.SpellsToIgnoreTooltipNameFor and ctp.SpellsToIgnoreTooltipNameFor[spellId]) then
-						spellKeysToSkipTooltipNameOn[key] = true
+				-- some stuff, like subtext, might be nil even though we're in the load continuation
+        		-- delaying it seems to fix it, and subtext always appears
+				RunNextFrame(function()
+					local spellName = spell:GetSpellName()
+					local subText = spell:GetSpellSubtext()
+					if (spellsToStripSubtextFrom[spellId]) then
+						subText = ""
 					end
-					self._store[key] = {
-						spellId = spellId
-					}
-					-- when the spell has multiple ranks, add its id to the by name store
-					if (string.match(subText or '', RANK)) then
-						if (self._byNameStore[spellName] == nil) then
-							self._byNameStore[spellName] = {}
+					if (spellsToAllowRanklessMatch[spellId]) then
+						subText = "*"
+					end
+					local function store(subText)
+						local key = self._getKey(spellName, subText)
+						if (ctp.SpellsToIgnoreTooltipNameFor and ctp.SpellsToIgnoreTooltipNameFor[spellId]) then
+							spellKeysToSkipTooltipNameOn[key] = true
 						end
-						tinsert(self._byNameStore[spellName], spellId)
-					end
-					if (postStoreFunc ~= nil) then
-						postStoreFunc(key)
-					end
-				end
-				if (subtextSubstutiteSpells[spellId]) then
-					subtextSubstutiteSpells[spellId]:ContinueOnSpellLoad(
-						function()
-							store(subtextSubstutiteSpells[spellId]:GetSpellSubtext())
+						self._store[key] = {
+							spellId = spellId
+						}
+						-- when the spell has multiple ranks, add its id to the 'by name' store
+						if (string.match(subText or '', RANK)) then
+							if (self._byNameStore[spellName] == nil) then
+								self._byNameStore[spellName] = {}
+							end
+							tinsert(self._byNameStore[spellName], spellId)
 						end
-					)
-				else
-					store(subText)
-				end
+						if (postStoreFunc ~= nil) then
+							postStoreFunc(key)
+						end
+					end
+					if (subtextSubstutiteSpells[spellId]) then
+						subtextSubstutiteSpells[spellId]:ContinueOnSpellLoad(
+							function()
+								RunNextFrame(function() store(subtextSubstutiteSpells[spellId]:GetSpellSubtext()) end)
+							end
+						)
+					else
+						store(subText)
+					end
+				end)
 			end
 		)
 	end,

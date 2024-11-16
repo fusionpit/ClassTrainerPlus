@@ -191,27 +191,22 @@
 					</Button>
 				</Frames>
 			</Frame>
-			<Frame name="ClassTrainerPlusFrameFilterDropDown" inherits="UIDropDownMenuTemplate" enableMouse="true">
+			<DropdownButton parentKey="FilterDropdown" inherits="WowStyle1FilterDropdownTemplate">
+				<KeyValues>
+					<KeyValue key="resizeToText" type="boolean" value="false"/>
+				</KeyValues>
 				<Anchors>
-					<Anchor point="TOPRIGHT">
-						<Offset>
-							<AbsDimension x="-26" y="-64"/>
-						</Offset>
-					</Anchor>
+					<Anchor point="TOPRIGHT"  x="-44" y="-67"/>
 				</Anchors>
-				<Scripts>
-					<OnLoad function="ClassTrainerPlusFrameFilterDropDown_OnLoad"/>
-					<OnShow function="ClassTrainerPlusFrameFilterDropDown_OnLoad"/>
-				</Scripts>
-			</Frame>
+			</DropdownButton>
 			<EditBox name="ClassTrainerPlusSearchBox" inherits="SearchBoxTemplate" autoFocus="false" letters="64">
 				<Size>
-					<AbsDimension x="106" y="32" />
+					<AbsDimension x="124" y="32" />
 				</Size>
 				<Anchors>
-					<Anchor point="TOPRIGHT" relativeTo="ClassTrainerPlusFrameFilterDropDown" relativePoint="TOPLEFT">
+					<Anchor point="TOPRIGHT" relativeKey="$parent.FilterDropdown" relativePoint="TOPLEFT">
 						<Offset>
-							<AbsDimension x="10" y="0" />
+							<AbsDimension x="-6" y="4" />
 						</Offset>
 					</Anchor>
 				</Anchors>

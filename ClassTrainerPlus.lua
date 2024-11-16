@@ -72,6 +72,38 @@ end
 local classSpellIds = _G[format("ClassTrainerPlus%sSpellIds", englishClass)]
 ctp.Abilities:Load(classSpellIds)
 
+local function TrainerUpdateHandler()
+	ctp.TrainerServices:Update()
+
+	local selectedIndex = GetTrainerSelectionIndex()
+	if (selectedIndex > 1) then
+		-- Select the first available ability
+		local service = ctp.TrainerServices:GetService(selectedIndex)
+		if (selectedIndex > ctp.TrainerServices.totalServices) then
+			FauxScrollFrame_SetOffset(ClassTrainerPlusListScrollFrame, 0)
+			ClassTrainerPlusListScrollFrameScrollBar:SetValue(0)
+			local firstAbility = ctp.TrainerServices:GetFirstVisibleNonHeaderService()
+			if (firstAbility == nil) then
+				selectedIndex = nil
+			else
+				selectedIndex = firstAbility.serviceId
+			end
+		elseif (service and service.isHidden) then
+			while (service and (service.isHidden or service.type == "header")) do
+				selectedIndex = selectedIndex + 1
+				service = ctp.TrainerServices:GetService(selectedIndex)
+			end
+			if (selectedIndex > ctp.TrainerServices.totalServices) then
+				selectedIndex = nil
+			end
+		end
+		ClassTrainerPlus_SetSelection(selectedIndex)
+	else
+		ClassTrainerPlus_SelectFirstLearnableSkill()
+	end
+	ClassTrainerPlusFrame_Update()
+end
+
 local function UpdateUserFilters()
 	ctp.TrainerServices:Update()
 	if (ClassTrainerPlusFrame and ClassTrainerPlusFrame:IsVisible()) then
@@ -79,6 +111,23 @@ local function UpdateUserFilters()
 	end
 end
 
+local function IsSelected(filter)
+	if filter == "ignored" then
+		return TRAINER_FILTER_IGNORED
+	else
+		return GetTrainerServiceTypeFilter(filter);
+	end
+end
+
+local function SetSelected(filter)
+	local newFilterValue = not IsSelected(filter)
+	_G["TRAINER_FILTER_" .. strupper(filter)] = newFilterValue
+	if filter == "ignored" then 
+		TrainerUpdateHandler()
+	else
+		SetTrainerServiceTypeFilter(filter, newFilterValue);
+	end
+end
 
 function ClassTrainerPlusFrame_Show()
 	-- ShowUIPanel(ClassTrainerPlusFrame)
@@ -98,6 +147,21 @@ function ClassTrainerPlusFrame_Show()
 	ctp.TrainerServices:Update()
 	ClassTrainerPlusFrame_Update()
 	UpdateMicroButtons()
+
+	SetTrainerServiceTypeFilter("available", TRAINER_FILTER_AVAILABLE)
+	SetTrainerServiceTypeFilter("unavailable", TRAINER_FILTER_UNAVAILABLE)
+	SetTrainerServiceTypeFilter("used", TRAINER_FILTER_USED)
+
+	ClassTrainerPlusFrame.FilterDropdown:SetupMenu(function(dropdown, rootDescription)
+		rootDescription:SetTag("MENU_TRAINER_PLUS_FILTER");
+
+		rootDescription:CreateCheckbox(GREEN_FONT_COLOR:WrapTextInColorCode(AVAILABLE), IsSelected, SetSelected, "available");
+		if (not IsTradeskillTrainer()) then
+			rootDescription:CreateCheckbox(LIGHTYELLOW_FONT_COLOR:WrapTextInColorCode(ctp.L["IGNORED"]), IsSelected, SetSelected, "ignored");
+		end
+		rootDescription:CreateCheckbox(RED_FONT_COLOR:WrapTextInColorCode(UNAVAILABLE), IsSelected, SetSelected, "unavailable");
+		rootDescription:CreateCheckbox(GRAY_FONT_COLOR:WrapTextInColorCode(USED), IsSelected, SetSelected, "used");
+	end);
 end
 
 function ClassTrainerPlusFrame_Hide()
@@ -119,7 +183,7 @@ function ClassTrainerPlusFrame_OnLoad(self)
 		if (GetMoney() < ctp.TrainerServices.availableCost) then
 			coloredCoinString = RED_FONT_COLOR_CODE .. coloredCoinString .. FONT_COLOR_CODE_CLOSE
 		end
-		trainAllCostTooltip:AddLine(format("Total cost: %s", coloredCoinString))
+		trainAllCostTooltip:AddLine(format(ctp.L.TOTAL_COST_TOOLTIP_FORMAT, ctp.TrainerServices.totalAvailable, coloredCoinString))
 		trainAllCostTooltip:Show()
 	end
 	local mousedOver = false
@@ -150,6 +214,7 @@ function ClassTrainerPlusFrame_OnLoad(self)
 			end
 		end
 	)
+	self.FilterDropdown:SetWidth(130)
 end
 
 function ClassTrainerPlus_OnSearchTextChanged(self)
@@ -160,38 +225,6 @@ function ClassTrainerPlus_OnSearchTextChanged(self)
 	end
 	ctp.TrainerServices:ApplyFilter()
 	ClassTrainerPlus_SelectFirstLearnableSkill()
-	ClassTrainerPlusFrame_Update()
-end
-
-local function TrainerUpdateHandler()
-	ctp.TrainerServices:Update()
-
-	local selectedIndex = GetTrainerSelectionIndex()
-	if (selectedIndex > 1) then
-		-- Select the first available ability
-		local service = ctp.TrainerServices:GetService(selectedIndex)
-		if (selectedIndex > ctp.TrainerServices.totalServices) then
-			FauxScrollFrame_SetOffset(ClassTrainerPlusListScrollFrame, 0)
-			ClassTrainerPlusListScrollFrameScrollBar:SetValue(0)
-			local firstAbility = ctp.TrainerServices:GetFirstVisibleNonHeaderService()
-			if (firstAbility == nil) then
-				selectedIndex = nil
-			else
-				selectedIndex = firstAbility.serviceId
-			end
-		elseif (service and service.isHidden) then
-			while (service and (service.isHidden or service.type == "header")) do
-				selectedIndex = selectedIndex + 1
-				service = ctp.TrainerServices:GetService(selectedIndex)
-			end
-			if (selectedIndex > ctp.TrainerServices.totalServices) then
-				selectedIndex = nil
-			end
-		end
-		ClassTrainerPlus_SetSelection(selectedIndex)
-	else
-		ClassTrainerPlus_SelectFirstLearnableSkill()
-	end
 	ClassTrainerPlusFrame_Update()
 end
 
@@ -641,13 +674,17 @@ function ClassTrainerPlusSkillButton_OnClick(self, button)
 	end
 end
 
+local function log(message)
+	print(string.format("ClassTrainerPlus: %s", message))
+end
+
 function ClassTrainerPlusTrainButton_OnClick()
 	if (IsTradeskillTrainer() and ClassTrainerPlusFrame.showDialog) then
 		StaticPopup_Show("CONFIRM_PROFESSION")
 	else
 		if (not IsTradeskillTrainer() and IsShiftKeyDown()) then
 			if (GetMoney() < ctp.TrainerServices.availableCost) then
-				print("ClassTrainerPlus: You don't have enough money to train everything!")
+				log(ctp.L.NOT_ENOUGH_ERROR)
 				return
 			end
 			ClassTrainerPlusFrame:UnregisterEvent("TRAINER_UPDATE")
@@ -657,13 +694,11 @@ function ClassTrainerPlusTrainButton_OnClick()
 				BuyTrainerService(id)
 			end
 			ClassTrainerPlusFrame:RegisterEvent("TRAINER_UPDATE")
-			print(
-				format(
-					"ClassTrainerPlus: You learned %d spells at a cost of %s",
-					#idsToLearn,
-					GetCoinTextureString(ctp.TrainerServices.availableCost)
-				)
-			)
+			log(format(
+				ctp.L.TOTAL_COST_LEARNED_FORMAT,
+				#idsToLearn,
+				GetCoinTextureString(ctp.TrainerServices.availableCost)
+			))
 		else
 			BuyTrainerService(ClassTrainerPlusFrame.selectedService)
 		end
@@ -730,74 +765,6 @@ function ClassTrainerPlus_SetToClassTrainer()
 	ClassTrainerPlusListScrollFrame:SetHeight(184)
 	ClassTrainerPlusDetailScrollFrame:SetHeight(119)
 	ClassTrainerPlusHorizontalBarLeft:SetPoint("TOPLEFT", "ClassTrainerPlusFrame", "TOPLEFT", 15, -275)
-end
-
--- Dropdown functions
-function ClassTrainerPlusFrameFilterDropDown_OnLoad(self)
-	UIDropDownMenu_Initialize(self, ClassTrainerPlusFrameFilterDropDown_Initialize)
-	UIDropDownMenu_SetText(self, FILTER)
-	UIDropDownMenu_SetWidth(self, 130)
-end
-
-function ClassTrainerPlusFrameFilterDropDown_Initialize()
-	-- Available button
-	local info = {}
-	info.text = GREEN_FONT_COLOR_CODE .. AVAILABLE .. FONT_COLOR_CODE_CLOSE
-	info.value = "available"
-	info.func = ClassTrainerPlusFrameFilterDropDown_OnClick
-	info.checked = GetTrainerServiceTypeFilter("available")
-	info.keepShownOnClick = 1
-	info.classicChecks = true
-	UIDropDownMenu_AddButton(info)
-
-	if (not IsTradeskillTrainer()) then
-		-- Ignored button
-		info = {}
-		info.text = LIGHTYELLOW_FONT_COLOR_CODE .. ctp.L["IGNORED"] .. FONT_COLOR_CODE_CLOSE
-		info.value = "ignored"
-		info.func = ClassTrainerPlusFrameFilterDropDown_OnClick
-		info.checked = TRAINER_FILTER_IGNORED
-		info.keepShownOnClick = 1
-		info.classicChecks = true
-		UIDropDownMenu_AddButton(info)
-	end
-
-	-- Unavailable button
-	info = {}
-	info.text = RED_FONT_COLOR_CODE .. UNAVAILABLE .. FONT_COLOR_CODE_CLOSE
-	info.value = "unavailable"
-	info.func = ClassTrainerPlusFrameFilterDropDown_OnClick
-	info.checked = GetTrainerServiceTypeFilter("unavailable")
-	info.keepShownOnClick = 1
-	info.classicChecks = true
-	UIDropDownMenu_AddButton(info)
-
-	-- Already Known button
-	info = {}
-	info.text = GRAY_FONT_COLOR_CODE .. USED .. FONT_COLOR_CODE_CLOSE
-	info.value = "used"
-	info.func = ClassTrainerPlusFrameFilterDropDown_OnClick
-	info.checked = GetTrainerServiceTypeFilter("used")
-	info.keepShownOnClick = 1
-	info.classicChecks = true
-	UIDropDownMenu_AddButton(info)
-end
-
-function ClassTrainerPlusFrameFilterDropDown_OnClick(self)
-	local newFilterValue = false
-	if (UIDropDownMenuButton_GetChecked(self)) then
-		newFilterValue = true
-	end
-
-	ClassTrainerPlusListScrollFrameScrollBar:SetValue(0)
-	FauxScrollFrame_SetOffset(ClassTrainerPlusListScrollFrame, 0)
-
-	_G["TRAINER_FILTER_" .. strupper(self.value)] = newFilterValue
-	if (self.value == "ignored") then
-		TrainerUpdateHandler()
-	else
-		SetTrainerServiceTypeFilter(self.value, newFilterValue)
-	end
 end
 
 local function trim(str)
