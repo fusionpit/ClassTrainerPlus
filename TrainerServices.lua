@@ -4,6 +4,7 @@ local ignoreStore = LibStub:GetLibrary("FusionIgnoreStore-1.0")
 ctp.TrainerServices = {
 	totalServices = 0,
 	availableCost = 0,
+	totalAvailable = 0,
 	visibleServices = 0,
 	showIgnored = TRAINER_FILTER_IGNORED,
 	allHeadersCollapsed = false,
@@ -88,6 +89,7 @@ ctp.TrainerServices = {
 		self._byPosition = {}
 		self.visibleServices = 0
 		self.availableCost = 0
+		self.totalAvailable = 0
 		local candidateSections = self._candidates
 		local numHeaders = #candidateSections
 		local numNotExpanded = 0
@@ -104,6 +106,7 @@ ctp.TrainerServices = {
 							end
 							if (skill.type == "available" and not skill.isIgnored) then
 								self.availableCost = self.availableCost + GetTrainerServiceCost(skill.serviceId)
+								self.totalAvailable = self.totalAvailable + 1
 							end
 							tinsert(self._byPosition, skill)
 						end
@@ -114,6 +117,7 @@ ctp.TrainerServices = {
 						tinsert(self._byPosition, skill)
 						if (skill.type == "available" and not skill.isIgnored) then
 							self.availableCost = self.availableCost + GetTrainerServiceCost(skill.serviceId)
+							self.totalAvailable = self.totalAvailable + 1
 						end
 					end
 				end
