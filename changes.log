@@ -1,3 +1,6 @@
+* 1.2.1
+    - Update ToC version
+
 * 1.2.0
     - Use latest blizz ui elements
     - Fix issue where spell ranks were sometimes not being loaded
