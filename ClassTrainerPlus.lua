@@ -267,6 +267,11 @@ function ClassTrainerPlusFrame_Update()
 	ClassTrainerPlusGreetingText:SetText(GetTrainerGreetingText())
 	local numFilteredTrainerServices = ctp.TrainerServices.visibleServices
 	local skillOffset = FauxScrollFrame_GetOffset(ClassTrainerPlusListScrollFrame)
+	-- When the user is scrolled down in the services list and applies a filter that causes the scroll bar to be removed,
+	-- the first `skillOffset` number of services will be hidden without a way to scroll to them
+	if skillOffset > 0 and numFilteredTrainerServices <= CLASS_TRAINER_SKILLS_DISPLAYED then
+		skillOffset = 0
+	end
 
 	-- If no spells then clear everything out
 	if (numFilteredTrainerServices == 0) then
