@@ -13,7 +13,7 @@ function lib:MigrateOrUse(addonTable)
         self:MaybeMigrate(addonTable)
         return
     end
-    print("loading addon table for ignore store!")
+    -- print("loading addon table for ignore store!")
     addonTable.MIGRATED = nil
     self.ignored = addonTable
 end
