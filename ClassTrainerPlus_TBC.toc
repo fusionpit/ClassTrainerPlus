@@ -1,4 +1,4 @@
-## Interface: 20505
+## Interface: 20506
 ## Title: Class Trainer Plus
 ## Version: @project-version@
 ## Author: Sveng
