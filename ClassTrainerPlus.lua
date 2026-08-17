@@ -661,7 +661,7 @@ function ClassTrainerPlusSkillButton_OnClick(self, button)
 				return MenuResponse.Close
 			end)
 			local spellIds = ctp.Abilities:GetAllIdsByName(service.name)
-			if (spellIds ~= nil) then
+			if (spellIds ~= nil and #spellIds > 1) then
 				local allIgnored = true
 				for _, id in ipairs(spellIds) do
 					allIgnored = allIgnored and ignoreStore:IsIgnored(id)
