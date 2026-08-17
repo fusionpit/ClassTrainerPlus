@@ -18,6 +18,27 @@ local subtextSubstutiteSpells = {}
 for spellId,subtextFromSpellId in pairs(spellsToSubstituteSubtextFor) do
 	subtextSubstutiteSpells[spellId] = Spell:CreateFromSpellID(subtextFromSpellId)
 end
+local romanDigits = { I = 1, V = 5, X = 10 }
+local function romanToNumber(numeral)
+	local total, prev = 0, 0
+	for i = #numeral, 1, -1 do
+		local value = romanDigits[numeral:sub(i, i)]
+		total = value < prev and total - value or total + value
+		prev = value
+	end
+	return total
+end
+-- In Classic Era 1.15.9, trainers list poisons without a roman numeral
+-- TBC Anniversary does include the roman numeral (as 1.15.8 did)
+-- strip roman numerals if the name has the same number as the subText (Rank #)
+local function stripRankNumeral(name, subText)
+	local base, numeral = string.match(name, "^(.-)%s+([IVX]+)$")
+	local rank = subText and string.match(subText, "%d+")
+	if (base and rank and romanToNumber(numeral) == tonumber(rank)) then
+		return base
+	end
+	return name
+end
 local spellKeysToSkipTooltipNameOn = {}
 ctp.TooltipNameMap = {}
 ctp.Abilities = {
@@ -53,18 +74,27 @@ ctp.Abilities = {
 					end
 					local function store(subText)
 						local key = self._getKey(spellName, subText)
-						if (ctp.SpellsToIgnoreTooltipNameFor and ctp.SpellsToIgnoreTooltipNameFor[spellId]) then
-							spellKeysToSkipTooltipNameOn[key] = true
+						local baseName = stripRankNumeral(spellName, subText)
+						local keys = { key }
+						if (baseName ~= spellName) then
+							tinsert(keys, self._getKey(baseName, subText))
 						end
-						self._store[key] = {
-							spellId = spellId
-						}
-						-- when the spell has multiple ranks, add its id to the 'by name' store
-						if (string.match(subText or '', RANK)) then
-							if (self._byNameStore[spellName] == nil) then
-								self._byNameStore[spellName] = {}
+						for _, storeKey in ipairs(keys) do
+							if (ctp.SpellsToIgnoreTooltipNameFor and ctp.SpellsToIgnoreTooltipNameFor[spellId]) then
+								spellKeysToSkipTooltipNameOn[storeKey] = true
 							end
-							tinsert(self._byNameStore[spellName], spellId)
+							self._store[storeKey] = {
+								spellId = spellId
+							}
+						end
+						-- when the spell has multiple ranks, add its id to the 'by name' store,
+						-- reachable by either name the trainer may list it under
+						if (string.match(subText or '', RANK)) then
+							if (self._byNameStore[baseName] == nil) then
+								self._byNameStore[baseName] = {}
+							end
+							tinsert(self._byNameStore[baseName], spellId)
+							self._byNameStore[spellName] = self._byNameStore[baseName]
 						end
 						if (postStoreFunc ~= nil) then
 							postStoreFunc(key)

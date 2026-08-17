@@ -660,20 +660,18 @@ function ClassTrainerPlusSkillButton_OnClick(self, button)
 				TrainerUpdateHandler()
 				return MenuResponse.Close
 			end)
-			if (ctp.SpellsToIgnoreAllRanksOn == nil or not ctp.SpellsToIgnoreAllRanksOn[spellId]) then
-				local spellIds = ctp.Abilities:GetAllIdsByName(service.name)
-				if (spellIds ~= nil) then
-					local allIgnored = true
-					for _, id in ipairs(spellIds) do
-						allIgnored = allIgnored and ignoreStore:IsIgnored(id)
-					end
-					rootDescription:CreateCheckbox(ctp.L["IGNOREALLRANKS"], function() return allIgnored end, function() 
-						PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
-						ignoreStore:UpdateMany(spellIds, not allIgnored)
-						TrainerUpdateHandler()
-						return MenuResponse.Close
-					end)
+			local spellIds = ctp.Abilities:GetAllIdsByName(service.name)
+			if (spellIds ~= nil) then
+				local allIgnored = true
+				for _, id in ipairs(spellIds) do
+					allIgnored = allIgnored and ignoreStore:IsIgnored(id)
 				end
+				rootDescription:CreateCheckbox(ctp.L["IGNOREALLRANKS"], function() return allIgnored end, function()
+					PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
+					ignoreStore:UpdateMany(spellIds, not allIgnored)
+					TrainerUpdateHandler()
+					return MenuResponse.Close
+				end)
 			end
 		end)
 	end

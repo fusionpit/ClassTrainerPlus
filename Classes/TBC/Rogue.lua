@@ -16,9 +16,7 @@ ClassTrainerPlusRogueSpellIds = {
   1784,921,6770,1785,1725,1856,2836,2070,1842,2094,1860,1786,1857,17347,11297,17348,1787,26889,31224,26864,
 }
 ctp.SpellsToIgnoreTooltipNameFor = {}
-ctp.SpellsToIgnoreAllRanksOn = {}
 for _,poisonId in ipairs(poisons) do
   ctp.SpellsToIgnoreTooltipNameFor[poisonId] = true
-  ctp.SpellsToIgnoreAllRanksOn[poisonId] = true
   tinsert(ClassTrainerPlusRogueSpellIds, poisonId)
 end
