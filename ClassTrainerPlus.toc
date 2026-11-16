@@ -11,21 +11,24 @@
 libs\LibStub.lua
 libs\FusionIgnoreStore\IgnoreStore.lua
 
+Classes\[Game]\Druid.lua
+Classes\[Game]\Hunter.lua
+Classes\[Game]\Mage.lua
+Classes\[Game]\Paladin.lua
+Classes\[Game]\Priest.lua
+Classes\[Game]\Rogue.lua
+Classes\[Game]\Shaman.lua 
+Classes\[Game]\Warlock.lua 
+Classes\[Game]\Warrior.lua
+Localization.lua
+
 # Era/TBC
-Classes\[Game]\Druid.lua [AllowLoadGameType vanilla, tbc][ExcludeLoadGameType mainline]
-Classes\[Game]\Hunter.lua [AllowLoadGameType vanilla, tbc][ExcludeLoadGameType mainline]
-Classes\[Game]\Mage.lua [AllowLoadGameType vanilla, tbc][ExcludeLoadGameType mainline]
-Classes\[Game]\Paladin.lua [AllowLoadGameType vanilla, tbc][ExcludeLoadGameType mainline]
-Classes\[Game]\Priest.lua [AllowLoadGameType vanilla, tbc][ExcludeLoadGameType mainline]
-Classes\[Game]\Rogue.lua [AllowLoadGameType vanilla, tbc][ExcludeLoadGameType mainline]
-Classes\[Game]\Shaman.lua [AllowLoadGameType vanilla, tbc][ExcludeLoadGameType mainline]
-Classes\[Game]\Warlock.lua [AllowLoadGameType vanilla, tbc][ExcludeLoadGameType mainline]
-Classes\[Game]\Warrior.lua [AllowLoadGameType vanilla, tbc][ExcludeLoadGameType mainline]
-Localization.lua [AllowLoadGameType vanilla, tbc][ExcludeLoadGameType mainline]
 AbilityStorage.lua [AllowLoadGameType vanilla, tbc][ExcludeLoadGameType mainline]
 TrainerServices.lua [AllowLoadGameType vanilla, tbc][ExcludeLoadGameType mainline]
 ClassTrainerPlus.xml [AllowLoadGameType vanilla, tbc][ExcludeLoadGameType mainline]
 Loader.lua [AllowLoadGameType vanilla, tbc][ExcludeLoadGameType mainline]
 
 # Forever
+Forever\Overlay.lua [AllowLoadGameType camelot][ExcludeLoadGameType classic]
+Forever\Overlay.xml [AllowLoadGameType camelot][ExcludeLoadGameType classic]
 Forever\ClassTrainerPlus.lua [AllowLoadGameType camelot][ExcludeLoadGameType classic]
